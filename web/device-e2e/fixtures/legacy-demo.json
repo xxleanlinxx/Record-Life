@@ -1,0 +1,1186 @@
+{
+  "format": "record-life",
+  "version": 1,
+  "tables": {
+    "dim_currency": [
+      {
+        "ccy": "JPY",
+        "symbol": "¥",
+        "minor_units": 0
+      },
+      {
+        "ccy": "EUR",
+        "symbol": "€",
+        "minor_units": 2
+      },
+      {
+        "ccy": "USD",
+        "symbol": "$",
+        "minor_units": 2
+      },
+      {
+        "ccy": "KRW",
+        "symbol": "₩",
+        "minor_units": 0
+      },
+      {
+        "ccy": "TWD",
+        "symbol": "NT$",
+        "minor_units": 0
+      },
+      {
+        "ccy": "GBP",
+        "symbol": "£",
+        "minor_units": 2
+      }
+    ],
+    "dim_category": [
+      {
+        "category": "Shopping",
+        "sort_no": 5,
+        "icon": "shopping-bag"
+      },
+      {
+        "category": "Other",
+        "sort_no": 6,
+        "icon": "more-horizontal"
+      },
+      {
+        "category": "Transport",
+        "sort_no": 1,
+        "icon": "bus"
+      },
+      {
+        "category": "Food",
+        "sort_no": 3,
+        "icon": "utensils"
+      },
+      {
+        "category": "Sights",
+        "sort_no": 4,
+        "icon": "landmark"
+      },
+      {
+        "category": "Stay",
+        "sort_no": 2,
+        "icon": "bed"
+      }
+    ],
+    "dim_fx_rate": [
+      {
+        "rate_date": "2026-08-01",
+        "base_ccy": "USD",
+        "quote_ccy": "GBP",
+        "rate": 0.787,
+        "source": "seed",
+        "loaded_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "rate_date": "2026-08-01",
+        "base_ccy": "USD",
+        "quote_ccy": "TWD",
+        "rate": 32.05,
+        "source": "seed",
+        "loaded_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "rate_date": "2026-08-01",
+        "base_ccy": "USD",
+        "quote_ccy": "JPY",
+        "rate": 149.3,
+        "source": "seed",
+        "loaded_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "rate_date": "2026-08-01",
+        "base_ccy": "USD",
+        "quote_ccy": "KRW",
+        "rate": 1350.0,
+        "source": "seed",
+        "loaded_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "rate_date": "2026-08-01",
+        "base_ccy": "USD",
+        "quote_ccy": "EUR",
+        "rate": 0.926,
+        "source": "seed",
+        "loaded_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "rate_date": "2026-08-01",
+        "base_ccy": "USD",
+        "quote_ccy": "USD",
+        "rate": 1.0,
+        "source": "seed",
+        "loaded_at": "2026-09-17T09:48:35.759328"
+      }
+    ],
+    "dim_place": [
+      {
+        "place_id": "kix",
+        "name": "Kansai International Airport",
+        "locality": "Osaka",
+        "address": null,
+        "lat": 34.4347,
+        "lng": 135.2441,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "granbell",
+        "name": "Hotel Granbell Kyoto",
+        "locality": "Gion-Shijo, Kyoto",
+        "address": null,
+        "lat": 35.0031,
+        "lng": 135.7717,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "cross",
+        "name": "Cross Hotel Osaka",
+        "locality": "Shinsaibashi, Osaka",
+        "address": null,
+        "lat": 34.6707,
+        "lng": 135.5011,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "ichiran",
+        "name": "Ichiran Ramen Kawaramachi",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "fushimi",
+        "name": "Fushimi Inari Taisha",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": 34.9671,
+        "lng": 135.7727,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "nishiki",
+        "name": "Nishiki Market",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": 35.005,
+        "lng": 135.7649,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "kiyomizu",
+        "name": "Kiyomizu-dera",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": 34.9949,
+        "lng": 135.785,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "pontocho",
+        "name": "Pontocho Alley",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "arashiyama",
+        "name": "Arashiyama Bamboo Grove",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": 35.017,
+        "lng": 135.6714,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "tenryuji",
+        "name": "Tenryu-ji",
+        "locality": "Arashiyama, Kyoto",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "arabica",
+        "name": "% Arabica Arashiyama",
+        "locality": "Kyoto",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "gion",
+        "name": "Hanamikoji Street",
+        "locality": "Gion, Kyoto",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "nara",
+        "name": "Todai-ji",
+        "locality": "Nara",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "dotonbori",
+        "name": "Dotonbori",
+        "locality": "Osaka",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "castle",
+        "name": "Osaka Castle",
+        "locality": "Osaka",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "kuromon",
+        "name": "Kuromon Ichiba Market",
+        "locality": "Osaka",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      },
+      {
+        "place_id": "shinsaibashi",
+        "name": "Shinsaibashi-suji",
+        "locality": "Osaka",
+        "address": null,
+        "lat": null,
+        "lng": null,
+        "gmaps_place_id": null
+      }
+    ],
+    "dim_trip": [
+      {
+        "trip_id": "t1",
+        "name": "Kyoto & Osaka",
+        "start_date": "2026-10-03",
+        "end_date": "2026-10-08",
+        "n_days": 6,
+        "dates_label": "Oct 3 – 8, 2026",
+        "home_currency": "USD",
+        "local_currency": "JPY",
+        "budget_home": 4800.0,
+        "status": "active"
+      }
+    ],
+    "dim_member": [
+      {
+        "member_id": "mia",
+        "trip_id": "t1",
+        "display_name": "Mia",
+        "is_owner": true
+      },
+      {
+        "member_id": "alex",
+        "trip_id": "t1",
+        "display_name": "Alex",
+        "is_owner": false
+      },
+      {
+        "member_id": "jun",
+        "trip_id": "t1",
+        "display_name": "Jun",
+        "is_owner": false
+      },
+      {
+        "member_id": "sora",
+        "trip_id": "t1",
+        "display_name": "Sora",
+        "is_owner": false
+      }
+    ],
+    "dim_trip_budget": [
+      {
+        "trip_id": "t1",
+        "category": "Transport",
+        "planned_home": 2200.0
+      },
+      {
+        "trip_id": "t1",
+        "category": "Stay",
+        "planned_home": 1300.0
+      },
+      {
+        "trip_id": "t1",
+        "category": "Food",
+        "planned_home": 700.0
+      },
+      {
+        "trip_id": "t1",
+        "category": "Sights",
+        "planned_home": 150.0
+      },
+      {
+        "trip_id": "t1",
+        "category": "Shopping",
+        "planned_home": 350.0
+      },
+      {
+        "trip_id": "t1",
+        "category": "Other",
+        "planned_home": 100.0
+      }
+    ],
+    "dwd_expense": [
+      {
+        "expense_id": 1,
+        "trip_id": "t1",
+        "day_no": 0,
+        "spent_at": "2026-08-12T10:00:00",
+        "title": "Flights SFO–KIX ×4",
+        "category": "Transport",
+        "amount": 1960.0,
+        "currency": "USD",
+        "member_id": "mia",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "kix",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 1960.0,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 1.0,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 2,
+        "trip_id": "t1",
+        "day_no": 1,
+        "spent_at": "2026-10-03T17:05:00",
+        "title": "Hotel Granbell deposit",
+        "category": "Stay",
+        "amount": 620.0,
+        "currency": "USD",
+        "member_id": "alex",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "granbell",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 620.0,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 1.0,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 3,
+        "trip_id": "t1",
+        "day_no": 1,
+        "spent_at": "2026-10-03T15:20:00",
+        "title": "Haruka express",
+        "category": "Transport",
+        "amount": 13600.0,
+        "currency": "JPY",
+        "member_id": "mia",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "kix",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 91.091762,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 4,
+        "trip_id": "t1",
+        "day_no": 1,
+        "spent_at": "2026-10-03T19:40:00",
+        "title": "Ichiran ramen",
+        "category": "Food",
+        "amount": 6900.0,
+        "currency": "JPY",
+        "member_id": "jun",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "ichiran",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 46.215673,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 5,
+        "trip_id": "t1",
+        "day_no": 2,
+        "spent_at": "2026-10-04T09:10:00",
+        "title": "Fushimi Inari omamori",
+        "category": "Shopping",
+        "amount": 3200.0,
+        "currency": "JPY",
+        "member_id": "sora",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "fushimi",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 21.433356,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 6,
+        "trip_id": "t1",
+        "day_no": 2,
+        "spent_at": "2026-10-04T12:30:00",
+        "title": "Nishiki market lunch",
+        "category": "Food",
+        "amount": 9400.0,
+        "currency": "JPY",
+        "member_id": "alex",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "nishiki",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 62.960482,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 7,
+        "trip_id": "t1",
+        "day_no": 2,
+        "spent_at": "2026-10-04T14:35:00",
+        "title": "Kiyomizu-dera entry",
+        "category": "Sights",
+        "amount": 2000.0,
+        "currency": "JPY",
+        "member_id": "mia",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "kiyomizu",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 13.395847,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 8,
+        "trip_id": "t1",
+        "day_no": 2,
+        "spent_at": "2026-10-04T21:00:00",
+        "title": "Pontocho kaiseki dinner",
+        "category": "Food",
+        "amount": 38000.0,
+        "currency": "JPY",
+        "member_id": "jun",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "pontocho",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 254.521098,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 9,
+        "trip_id": "t1",
+        "day_no": 3,
+        "spent_at": "2026-10-05T08:10:00",
+        "title": "Arashiyama bus",
+        "category": "Transport",
+        "amount": 1840.0,
+        "currency": "JPY",
+        "member_id": "sora",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "arashiyama",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 12.32418,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      },
+      {
+        "expense_id": 10,
+        "trip_id": "t1",
+        "day_no": 3,
+        "spent_at": "2026-10-05T13:15:00",
+        "title": "Matcha at % Arabica",
+        "category": "Food",
+        "amount": 2600.0,
+        "currency": "JPY",
+        "member_id": "alex",
+        "fx_rate_date": "2026-08-01",
+        "place_id": "arabica",
+        "created_at": "2026-09-17T09:48:35.759328",
+        "booked_home_amount": 17.414601,
+        "booked_home_currency": "USD",
+        "fx_home_currency": "USD",
+        "applied_fx_rate": 0.006697923644,
+        "submission_id": null,
+        "is_deleted": false
+      }
+    ],
+    "dwd_expense_split": [
+      {
+        "expense_id": 1,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 2,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 3,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 4,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 5,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 6,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 7,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 8,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 9,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 10,
+        "member_id": "sora",
+        "share": 0.25
+      },
+      {
+        "expense_id": 1,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 2,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 3,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 4,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 5,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 6,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 7,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 8,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 9,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 10,
+        "member_id": "jun",
+        "share": 0.25
+      },
+      {
+        "expense_id": 1,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 2,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 3,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 4,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 5,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 6,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 7,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 8,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 9,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 10,
+        "member_id": "alex",
+        "share": 0.25
+      },
+      {
+        "expense_id": 1,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 2,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 3,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 4,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 5,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 6,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 7,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 8,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 9,
+        "member_id": "mia",
+        "share": 0.25
+      },
+      {
+        "expense_id": 10,
+        "member_id": "mia",
+        "share": 0.25
+      }
+    ],
+    "dwd_itinerary_item": [
+      {
+        "item_id": 1,
+        "trip_id": "t1",
+        "day_no": 1,
+        "start_time": "14:20",
+        "kind": "flight",
+        "title": "Land at Kansai (KIX)",
+        "place_id": "kix",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": "UA 837"
+      },
+      {
+        "item_id": 2,
+        "trip_id": "t1",
+        "day_no": 1,
+        "start_time": "15:30",
+        "kind": "transport",
+        "title": "Haruka express to Kyoto",
+        "place_id": "kix",
+        "planned_cost": 13600.0,
+        "planned_ccy": "JPY",
+        "notes": "reserved car"
+      },
+      {
+        "item_id": 3,
+        "trip_id": "t1",
+        "day_no": 1,
+        "start_time": "17:00",
+        "kind": "hotel",
+        "title": "Check in · Hotel Granbell",
+        "place_id": "granbell",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 4,
+        "trip_id": "t1",
+        "day_no": 1,
+        "start_time": "19:00",
+        "kind": "food",
+        "title": "Ichiran ramen",
+        "place_id": "ichiran",
+        "planned_cost": 6000.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 5,
+        "trip_id": "t1",
+        "day_no": 2,
+        "start_time": "08:00",
+        "kind": "sight",
+        "title": "Fushimi Inari",
+        "place_id": "fushimi",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": "go early"
+      },
+      {
+        "item_id": 6,
+        "trip_id": "t1",
+        "day_no": 2,
+        "start_time": "12:00",
+        "kind": "food",
+        "title": "Nishiki market lunch",
+        "place_id": "nishiki",
+        "planned_cost": 8000.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 7,
+        "trip_id": "t1",
+        "day_no": 2,
+        "start_time": "14:30",
+        "kind": "sight",
+        "title": "Kiyomizu-dera",
+        "place_id": "kiyomizu",
+        "planned_cost": 2000.0,
+        "planned_ccy": "JPY",
+        "notes": "¥500 each"
+      },
+      {
+        "item_id": 8,
+        "trip_id": "t1",
+        "day_no": 2,
+        "start_time": "19:00",
+        "kind": "food",
+        "title": "Kaiseki dinner",
+        "place_id": "pontocho",
+        "planned_cost": 36000.0,
+        "planned_ccy": "JPY",
+        "notes": "reservation"
+      },
+      {
+        "item_id": 9,
+        "trip_id": "t1",
+        "day_no": 3,
+        "start_time": "08:30",
+        "kind": "sight",
+        "title": "Arashiyama bamboo grove",
+        "place_id": "arashiyama",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 10,
+        "trip_id": "t1",
+        "day_no": 3,
+        "start_time": "11:00",
+        "kind": "sight",
+        "title": "Tenryu-ji temple",
+        "place_id": "tenryuji",
+        "planned_cost": 2000.0,
+        "planned_ccy": "JPY",
+        "notes": "¥500 each"
+      },
+      {
+        "item_id": 11,
+        "trip_id": "t1",
+        "day_no": 3,
+        "start_time": "13:00",
+        "kind": "food",
+        "title": "% Arabica",
+        "place_id": "arabica",
+        "planned_cost": 1400.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 12,
+        "trip_id": "t1",
+        "day_no": 3,
+        "start_time": "16:00",
+        "kind": "shop",
+        "title": "Aritsugu knives",
+        "place_id": "nishiki",
+        "planned_cost": 28000.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 13,
+        "trip_id": "t1",
+        "day_no": 3,
+        "start_time": "19:30",
+        "kind": "sight",
+        "title": "Gion evening walk",
+        "place_id": "gion",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 14,
+        "trip_id": "t1",
+        "day_no": 4,
+        "start_time": "09:00",
+        "kind": "sight",
+        "title": "Nara day trip",
+        "place_id": "nara",
+        "planned_cost": 2400.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 15,
+        "trip_id": "t1",
+        "day_no": 4,
+        "start_time": "18:00",
+        "kind": "food",
+        "title": "Dotonbori street food",
+        "place_id": "dotonbori",
+        "planned_cost": 9000.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 16,
+        "trip_id": "t1",
+        "day_no": 5,
+        "start_time": "10:00",
+        "kind": "sight",
+        "title": "Osaka Castle",
+        "place_id": "castle",
+        "planned_cost": 2400.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 17,
+        "trip_id": "t1",
+        "day_no": 5,
+        "start_time": "13:00",
+        "kind": "food",
+        "title": "Kuromon market",
+        "place_id": "kuromon",
+        "planned_cost": 7000.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 18,
+        "trip_id": "t1",
+        "day_no": 5,
+        "start_time": "15:00",
+        "kind": "shop",
+        "title": "Shinsaibashi shopping",
+        "place_id": "shinsaibashi",
+        "planned_cost": 12000.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 19,
+        "trip_id": "t1",
+        "day_no": 6,
+        "start_time": "09:00",
+        "kind": "hotel",
+        "title": "Check out · Cross Hotel",
+        "place_id": "cross",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": null
+      },
+      {
+        "item_id": 20,
+        "trip_id": "t1",
+        "day_no": 6,
+        "start_time": "17:40",
+        "kind": "flight",
+        "title": "KIX → SFO",
+        "place_id": "kix",
+        "planned_cost": 0.0,
+        "planned_ccy": "JPY",
+        "notes": "UA 838"
+      }
+    ],
+    "dwd_booking": [
+      {
+        "booking_id": 1,
+        "trip_id": "t1",
+        "kind": "flight",
+        "title": "SFO → KIX",
+        "provider": "United",
+        "ref_code": "UA 837",
+        "confirmation": "K4R7ZQ",
+        "origin": "SFO",
+        "destination": "KIX",
+        "starts_at": "2026-10-02T11:05:00",
+        "ends_at": "2026-10-03T14:20:00",
+        "place_id": "kix",
+        "price": 1960.0,
+        "price_ccy": "USD",
+        "notes": "11h 15m",
+        "start_zone": "America/Los_Angeles",
+        "end_zone": "Asia/Tokyo"
+      },
+      {
+        "booking_id": 2,
+        "trip_id": "t1",
+        "kind": "flight",
+        "title": "KIX → SFO",
+        "provider": "United",
+        "ref_code": "UA 838",
+        "confirmation": "K4R7ZQ",
+        "origin": "KIX",
+        "destination": "SFO",
+        "starts_at": "2026-10-08T17:40:00",
+        "ends_at": "2026-10-08T11:05:00",
+        "place_id": "kix",
+        "price": null,
+        "price_ccy": "USD",
+        "notes": "10h 25m",
+        "start_zone": "Asia/Tokyo",
+        "end_zone": "America/Los_Angeles"
+      },
+      {
+        "booking_id": 3,
+        "trip_id": "t1",
+        "kind": "hotel",
+        "title": "Hotel Granbell Kyoto",
+        "provider": null,
+        "ref_code": null,
+        "confirmation": "GB-48213",
+        "origin": null,
+        "destination": null,
+        "starts_at": "2026-10-03T15:00:00",
+        "ends_at": "2026-10-06T11:00:00",
+        "place_id": "granbell",
+        "price": 1260.0,
+        "price_ccy": "USD",
+        "notes": "3 nights",
+        "start_zone": "Asia/Tokyo",
+        "end_zone": "Asia/Tokyo"
+      },
+      {
+        "booking_id": 4,
+        "trip_id": "t1",
+        "kind": "hotel",
+        "title": "Cross Hotel Osaka",
+        "provider": null,
+        "ref_code": null,
+        "confirmation": "CH-90177",
+        "origin": null,
+        "destination": null,
+        "starts_at": "2026-10-06T15:00:00",
+        "ends_at": "2026-10-08T11:00:00",
+        "place_id": "cross",
+        "price": 480.0,
+        "price_ccy": "USD",
+        "notes": "2 nights",
+        "start_zone": "Asia/Tokyo",
+        "end_zone": "Asia/Tokyo"
+      },
+      {
+        "booking_id": 5,
+        "trip_id": "t1",
+        "kind": "reservation",
+        "title": "Pontocho kaiseki",
+        "provider": null,
+        "ref_code": null,
+        "confirmation": null,
+        "origin": null,
+        "destination": null,
+        "starts_at": "2026-10-04T19:00:00",
+        "ends_at": "2026-10-04T21:00:00",
+        "place_id": "pontocho",
+        "price": null,
+        "price_ccy": "JPY",
+        "notes": "4 guests",
+        "start_zone": "Asia/Tokyo",
+        "end_zone": "Asia/Tokyo"
+      },
+      {
+        "booking_id": 6,
+        "trip_id": "t1",
+        "kind": "reservation",
+        "title": "Mizuno okonomiyaki",
+        "provider": null,
+        "ref_code": null,
+        "confirmation": null,
+        "origin": null,
+        "destination": null,
+        "starts_at": "2026-10-06T18:30:00",
+        "ends_at": "2026-10-06T19:30:00",
+        "place_id": "dotonbori",
+        "price": null,
+        "price_ccy": "JPY",
+        "notes": "4 guests",
+        "start_zone": "Asia/Tokyo",
+        "end_zone": "Asia/Tokyo"
+      },
+      {
+        "booking_id": 7,
+        "trip_id": "t1",
+        "kind": "reservation",
+        "title": "Endo Sushi",
+        "provider": null,
+        "ref_code": null,
+        "confirmation": null,
+        "origin": null,
+        "destination": null,
+        "starts_at": "2026-10-07T12:30:00",
+        "ends_at": "2026-10-07T13:30:00",
+        "place_id": "kuromon",
+        "price": null,
+        "price_ccy": "JPY",
+        "notes": "4 guests",
+        "start_zone": "Asia/Tokyo",
+        "end_zone": "Asia/Tokyo"
+      }
+    ],
+    "dwd_shopping_item": [
+      {
+        "item_id": 100,
+        "trip_id": "t1",
+        "title": "Ippodo matcha powder",
+        "where_hint": "Teramachi",
+        "planned_price": 3800.0,
+        "planned_ccy": "JPY",
+        "is_bought": true,
+        "expense_id": null,
+        "updated_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "item_id": 101,
+        "trip_id": "t1",
+        "title": "Yatsuhashi sweets",
+        "where_hint": "Kiyomizu slope",
+        "planned_price": 1200.0,
+        "planned_ccy": "JPY",
+        "is_bought": false,
+        "expense_id": null,
+        "updated_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "item_id": 102,
+        "trip_id": "t1",
+        "title": "Aritsugu kitchen knife",
+        "where_hint": "Nishiki market",
+        "planned_price": 28000.0,
+        "planned_ccy": "JPY",
+        "is_bought": false,
+        "expense_id": null,
+        "updated_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "item_id": 103,
+        "trip_id": "t1",
+        "title": "Furoshiki cloth",
+        "where_hint": "Gion",
+        "planned_price": 2400.0,
+        "planned_ccy": "JPY",
+        "is_bought": true,
+        "expense_id": null,
+        "updated_at": "2026-09-17T09:48:35.759328"
+      },
+      {
+        "item_id": 104,
+        "trip_id": "t1",
+        "title": "Regional Kit Kats",
+        "where_hint": "Don Quijote, Osaka",
+        "planned_price": 1500.0,
+        "planned_ccy": "JPY",
+        "is_bought": false,
+        "expense_id": null,
+        "updated_at": "2026-09-17T09:48:35.759328"
+      }
+    ],
+    "dwd_currency_change": []
+  }
+}
