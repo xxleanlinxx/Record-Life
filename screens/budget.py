@@ -11,7 +11,7 @@ spent = float(daily.spent_home.sum())
 budget = float(trip.budget_home)
 remaining = budget-spent
 day,left,phase = ui.progress(trip)
-ui.blueprint(f'<span class="tr-kicker">Spent</span><span class="tr-num">{fx.fmt(spent,H)}</span>'
+ui.card(f'<span class="tr-kicker">Spent</span><span class="tr-num">{fx.fmt(spent,H)}</span>'
     f'<div>Remaining {fx.fmt(remaining,H)} / {fx.fmt(budget,H)}</div>' + ui.bar(spent/budget*100 if budget else 0))
 st.caption(f"{phase}" + (f" · {fx.fmt(remaining/left,H)} / day left" if left else ""))
 view = st.radio("Budget view",["Category","Per day","Plan vs actual"],horizontal=True)

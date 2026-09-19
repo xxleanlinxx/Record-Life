@@ -23,7 +23,7 @@ for kind,label in [("flight","Flights"),("hotel","Hotels"),("reservation","Resta
         link = maps.link(ui.text(r.place),ui.text(r.locality),ui.text(r.gmaps_place_id)) if ui.text(r.place) else ""
         start = f"{r.starts_at:%b %d %H:%M} {ui.text(r.start_zone)}" if ui.text(r.starts_at) else "Time not entered"
         end = f"{r.ends_at:%b %d %H:%M} {ui.text(r.end_zone)}" if ui.text(r.ends_at) else "Time not entered"
-        ui.blueprint(f'<b>{ui.escape(r.title)}</b><div class="tr-mute">{ui.escape(start)} → {ui.escape(end)}</div>'
+        ui.card(f'<b>{ui.escape(r.title)}</b><div class="tr-mute">{ui.escape(start)} → {ui.escape(end)}</div>'
             f'<div>{ui.escape(ui.text(r.provider))} {ui.escape(ui.text(r.ref_code))}</div>'
             f'<div class="tr-mute">Conf. {ui.escape(ui.text(r.confirmation,"—"))} · {price}</div>'
             f'<div class="tr-mute">{ui.escape(ui.text(r.notes))} {link}</div>')

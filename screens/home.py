@@ -15,9 +15,16 @@ else:
     remaining = trip.budget_home-spent
     day,left,phase = ui.progress(trip)
     ui.header(trip.dates_label,trip["name"],phase)
+    all_items = db.q(con, "select i.*, p.name place from dwd_itinerary_item i left join dim_place p using(place_id) where i.trip_id=? order by day_no,start_time,item_id", [tid])
+    member_count = db.q(con, "select count(*) n from dim_member where trip_id=?", [tid]).iloc[0, 0]
+    st.markdown(f'<div class="tr-facts"><div><small>Duration</small><strong>{trip.n_days} days</strong></div>'
+                f'<div><small>Travel party</small><strong>{member_count} people</strong></div>'
+                f'<div><small>Planned stops</small><strong>{len(all_items)} places</strong></div></div>', unsafe_allow_html=True)
+    if day == 0:
+        ui.trip_days(trip, all_items)
     if tid == "t1":
         st.caption("Demo trip · existing expenses use sample rates.")
-    ui.blueprint(f'<span class="tr-kicker">Remaining</span><span class="tr-num">{fx.fmt(remaining,H)}</span>'
+    ui.card(f'<span class="tr-kicker">Remaining</span><span class="tr-num">{fx.fmt(remaining,H)}</span>'
         f'<div class="tr-mute">{fx.fmt(spent,H)} spent / {fx.fmt(trip.budget_home,H)} budget</div>'
         + ui.bar(spent/trip.budget_home*100 if trip.budget_home else 0))
     if left:
@@ -32,11 +39,13 @@ else:
         st.markdown(ui.row(r.start_time,ui.escape(r.title),link,ui.escape(r.kind)),unsafe_allow_html=True)
     st.subheader("Recent expenses")
     recent = db.q(con,"""select e.*,m.display_name from v_dwd_expense_home e join dim_member m using(member_id)
-        where e.trip_id=? order by e.created_at desc,e.expense_id desc limit 3""",[tid])
+        where e.trip_id=? order by e.expense_id desc limit 3""",[tid])
     if recent.empty:
         st.caption("Your recorded payments will appear here.")
     for _,r in recent.iterrows():
         st.markdown(ui.row("",ui.escape(r.title),ui.escape(f"{r.display_name} · {r.category}"),fx.fmt(r.amount_home,H)),unsafe_allow_html=True)
+    if day != 0:
+        ui.trip_days(trip, all_items)
     with st.expander("Manage this trip"):
         budgets = db.q(con,"select category,planned_home from dim_trip_budget where trip_id=?",[tid]).set_index("category").planned_home.to_dict()
         with st.form(f"edit_trip_{tid}_{H}"):

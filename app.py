@@ -49,6 +49,6 @@ with st.sidebar:
     st.caption("D-1 cutoff: Asia/Taipei · provider dates shown as supplied.")
     st.page_link("screens/home.py",label="Manage / create trips")
 
+ui.option_menu(navigation.title)
 ui.flash()
 navigation.run()
-ui.tab_bar(navigation.title)

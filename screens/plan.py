@@ -5,20 +5,30 @@ con,tid,H,trip = ui.context()
 ui.header("Plan","Itinerary & shopping")
 mode = st.radio("View",["Itinerary","Shopping"],horizontal=True)
 if mode=="Itinerary":
-    day = st.selectbox("Day",range(1,int(trip.n_days)+1),format_func=lambda d:f"Day {d}")
+    selected_day = st.session_state.pop("requested_day", st.session_state.get(f"last_plan_day_{tid}", 1))
+    day = st.selectbox("Day",range(1,int(trip.n_days)+1),index=min(int(trip.n_days), max(1, selected_day))-1,format_func=lambda d:f"Day {d}")
+    st.session_state[f"last_plan_day_{tid}"] = day
     items = db.q(con,"""select i.*,p.name place,p.locality,p.gmaps_place_id from dwd_itinerary_item i
         left join dim_place p using(place_id) where i.trip_id=? and i.day_no=? order by start_time,item_id""",[tid,day])
     totals = items.groupby("planned_ccy").planned_cost.sum()
     st.caption(f"{len(items)} stops · " + " / ".join(fx.fmt(a,c) for c,a in totals.items()))
+    import datetime as dt
+    date = trip.start_date + dt.timedelta(days=day-1)
+    ui.day_header(day, f"{date:%b %d · %A}", " · ".join(items.title.head(3)) if not items.empty else "Make room for your favourite places.")
+    layout = st.radio("Presentation", ["Timeline", "Cards"], horizontal=True, key=f"plan_layout_{tid}")
     prev = None
     for _,r in items.iterrows():
         place = ui.text(r.place)
         locality = ui.text(r.locality)
-        if prev and place:
+        if layout == "Timeline" and prev and place:
             st.link_button("Directions to next stop ↗",maps.directions_url(prev,f"{place} {locality}"))
         link = maps.link(place,locality,ui.text(r.gmaps_place_id)) if place else ""
-        ui.blueprint(f'<div class="tr-kicker">{r.start_time} · {r.kind}</div><b>{ui.escape(r.title)}</b>'
-            f'<div>{link} · {fx.fmt(r.planned_cost,r.planned_ccy)}</div><div class="tr-mute">{ui.escape(ui.text(r.notes))}</div>')
+        content = (f'<div class="tr-kicker">{r.start_time} · {r.kind}</div><b>{ui.escape(r.title)}</b>'
+                   f'<div>{link} · {fx.fmt(r.planned_cost,r.planned_ccy)}</div><div class="tr-mute">{ui.escape(ui.text(r.notes))}</div>')
+        if layout == "Timeline":
+            st.markdown(f'<div class="tr-timeline" style="--day-color:{ui.day_color(day)}"><div class="tr-card">{content}</div></div>', unsafe_allow_html=True)
+        else:
+            ui.card(content, day)
         prev = f"{place} {locality}" if place else prev
     if items.empty:
         st.info("Add an attraction, restaurant, hotel or transport leg.")
