@@ -44,6 +44,7 @@ class Expense(Input):
     submission_id: str = Field(min_length=8,max_length=100)
     shopping_id: int | None = None
     replaces: int | None = None
+    split_mode: Literal["preserve", "equal"] = "preserve"
 
 class Activity(Input):
     day: int = Field(ge=1,le=366)

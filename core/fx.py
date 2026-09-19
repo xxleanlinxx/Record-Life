@@ -129,6 +129,6 @@ def fmt(amount, ccy):
         value = decimal(amount)
     except ValueError:
         return "—"
-    places = 0 if ccy in ("JPY", "KRW", "TWD") else 2
+    places = 0 if ccy in ("JPY", "KRW") else 2
     rounded = value.quantize(Decimal(1).scaleb(-places), rounding=ROUND_HALF_UP)
     return f"{SYMBOL.get(ccy, ccy + ' ')}{rounded:,.{places}f}"

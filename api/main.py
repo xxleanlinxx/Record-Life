@@ -6,7 +6,7 @@ import os
 
 import duckdb
 import pandas as pd
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -77,7 +77,7 @@ def create_app(connection=None):
     @app.exception_handler(RequestValidationError)
     async def validation(request,exc):
         return JSONResponse(status_code=422,content={'detail':'請確認必填欄位、日期與金額格式。',
-            'fields':['.'.join(str(x) for x in e['loc'][1:]) for e in exc.errors()]})
+            'code':'validation','fieldErrors':{'.'.join(str(x) for x in e['loc'][1:]):'請確認內容、日期或金額格式。' for e in exc.errors()}})
 
     @app.exception_handler(duckdb.Error)
     async def database_error(request,exc):
@@ -109,7 +109,7 @@ def create_app(connection=None):
         return {'trip_id':services.create_trip(con(),**body.model_dump())}
 
     @app.get('/api/trips/{tid}')
-    def snapshot(tid:str):
+    def snapshot(tid:str, summary: bool = False):
         with db.LOCK:
             revision = version(tid)
             return {'revision':revision,'trip':rows('select * from dim_trip where trip_id=?',[tid])[0],
@@ -120,12 +120,26 @@ def create_app(connection=None):
                     left join dim_place p using(place_id) where b.trip_id=? order by starts_at,booking_id''',[tid]),
                 'shopping':rows('select * from dwd_shopping_item where trip_id=? order by is_bought,item_id',[tid]),
                 'expenses':rows('''select e.*,m.display_name payer from v_dwd_expense_home e join dim_member m using(member_id)
-                    where e.trip_id=? order by spent_at desc,expense_id desc''',[tid]),
-                'splits':rows('''select s.* from dwd_expense_split s join v_dwd_expense_home e using(expense_id) where e.trip_id=?''',[tid]),
+                    where e.trip_id=? order by ''' + ('expense_id' if summary else 'spent_at') + ' desc,expense_id desc' + (' limit 20' if summary else ''),[tid]),
+                'splits':rows('select s.* from dwd_expense_split s join (select expense_id from v_dwd_expense_home where trip_id=? order by ' + ('expense_id' if summary else 'spent_at') + ' desc,expense_id desc' + (' limit 20' if summary else '') + ') e using(expense_id)',[tid]),
                 'daily':rows('select * from dws_trip_daily where trip_id=? order by day_no',[tid]),
                 'categories':rows('select * from dws_trip_category where trip_id=? order by actual_home desc',[tid]),
                 'balances':rows('''select b.*,m.display_name from dws_member_balance b join dim_member m using(member_id)
                     where b.trip_id=? order by m.display_name''',[tid]),'fx':fx_info()}
+
+    @app.get('/api/trips/{tid}/expenses')
+    def expense_page(tid: str, q: str = Query('', max_length=240),
+                     category: str = Query('all', pattern='^(all|Transport|Stay|Food|Sights|Shopping|Other)$'),
+                     page: int = Query(1, ge=1, le=1000000)):
+        with db.LOCK:
+            revision = version(tid)
+            source = "from v_dwd_expense_home e join dim_member m using(member_id) where e.trip_id=? and (?='all' or e.category=?) and contains(lower(e.title || ' ' || m.display_name),lower(?))"
+            params = [tid, category, category, q]
+            window = ' order by spent_at desc,expense_id desc limit 50 offset ?'
+            entries = rows('select e.*,m.display_name payer ' + source + window, [*params, (page-1)*50])
+            splits = rows('select s.* from dwd_expense_split s join (select expense_id ' + source + window + ') e using(expense_id)', [*params, (page-1)*50])
+            total = rows('select count(*) n ' + source, params)[0]['n']
+            return {'revision': revision, 'expenses': entries, 'splits': splits, 'total': total}
 
     @app.put('/api/trips/{tid}')
     def edit_trip(tid:str,body:models.TripEdit,request:Request):

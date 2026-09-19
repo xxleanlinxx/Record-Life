@@ -101,3 +101,19 @@ def test_backup_authorization_and_validation(client,monkeypatch):
     monkeypatch.setenv('RECORD_LIFE_API_TOKEN','a-private-token')
     assert client.get('/api/bootstrap').status_code==401
     assert client.get('/api/bootstrap',headers={'Authorization':'Bearer a-private-token'}).status_code==200
+
+def test_expense_pagination_and_literal_search(client):
+    for i in range(55):
+        body = expense()
+        body['title'] = f'分頁測試 {i:02d}'
+        assert client.post('/api/trips/t1/expenses', json=body).status_code == 201
+    first = client.get('/api/trips/t1/expenses', params={'q': '分頁測試'}).json()
+    second = client.get('/api/trips/t1/expenses', params={'q': '分頁測試', 'page': 2}).json()
+    assert first['total'] == second['total'] == 55
+    assert len(first['expenses']) == 50 and len(second['expenses']) == 5
+    assert not {e['expense_id'] for e in first['expenses']} & {e['expense_id'] for e in second['expenses']}
+    assert len(first['splits']) == 100 and len(second['splits']) == 10
+    assert len(client.get('/api/trips/t1', params={'summary': 1}).json()['expenses']) == 20
+    assert client.get('/api/trips/t1/expenses', params={'q':'%'}).json()['total'] == sum('%' in e['title'] or '%' in e['payer'] for e in snapshot(client)['expenses'])
+    assert client.get('/api/trips/t1/expenses', params={'page':0}).status_code == 422
+    assert client.get('/api/trips/t1/expenses', params={'category':'invalid'}).status_code == 422

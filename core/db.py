@@ -101,11 +101,14 @@ def _backfill_expenses(con):
     if missing:
         raise ValueError(f"{missing} legacy expense(s) lack their pinned FX snapshot; restore the rates before migrating.")
 
+def touch_trip(con, trip_id):
+    con.execute("insert into app_trip_revision values (?,1) on conflict(trip_id) do update set revision=app_trip_revision.revision+1",[trip_id])
+
 def _refresh_dws(con, trip_id):
     con.execute("delete from dws_trip_daily where trip_id=? and day_no>(select n_days from dim_trip where trip_id=?)",[trip_id,trip_id])
     for table in ("dws_trip_daily", "dws_trip_category", "dws_member_balance"):
         con.execute(f"insert or replace into {table} select * from v_{table} where trip_id=?", [trip_id])
-    con.execute("insert into app_trip_revision values (?,1) on conflict(trip_id) do update set revision=app_trip_revision.revision+1",[trip_id])
+    touch_trip(con, trip_id)
 
 def refresh_dws(con, trip_id):
     with transaction(con):

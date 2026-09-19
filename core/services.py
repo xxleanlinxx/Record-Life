@@ -1,6 +1,6 @@
 """Validated writes: detail records and summaries commit together."""
 import datetime as dt
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 from core import db, fx
@@ -18,7 +18,7 @@ def money(value, positive=False):
     value = fx.decimal(value)
     if value < 0 or value > Decimal("999999999999"):
         raise ValueError("Amount must be positive." if positive else "Amount must be non-negative and within range.")
-    value = value.quantize(Decimal("0.01"))
+    value = value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     if positive and value == 0:
         raise ValueError("Amount must be at least 0.01.")
     return value
@@ -96,7 +96,7 @@ def change_home_currency(con, tid, home):
         con.execute("insert into dwd_currency_change(change_id,trip_id,from_ccy,to_ccy,factor,rate_date) values (?,?,?,?,?,?)",[uuid4().hex,tid,old,home,factor,date])
         db._refresh_dws(con,tid)
 
-def save_expense(con, tid, title, category, amount, currency, when, payer, split, submission_id, shopping_id=None, replaces=None):
+def save_expense(con, tid, title, category, amount, currency, when, payer, split, submission_id, shopping_id=None, replaces=None, split_mode="preserve"):
     with db.transaction(con):
         submission_id = required(submission_id,"Submission ID")
         existing = con.execute("select expense_id from dwd_expense where submission_id=? and trip_id=?",[submission_id,tid]).fetchone()
@@ -116,15 +116,34 @@ def save_expense(con, tid, title, category, amount, currency, when, payer, split
             item = con.execute("select expense_id from dwd_shopping_item where trip_id=? and item_id=?",[tid,shopping_id]).fetchone()
             if item is None or (item[0] is not None and item[0] != replaces):
                 raise ValueError("Shopping item is missing or already linked to an expense.")
-        rate,date = fx.factor(con,currency,t.home_currency)
+        previous = None
+        old_shares = {}
+        if replaces is not None:
+            columns = ("amount", "currency", "applied_fx_rate", "fx_rate_date", "booked_home_amount", "fx_home_currency")
+            row = con.execute(f"select {','.join(columns)} from dwd_expense where trip_id=? and expense_id=? and not is_deleted",[tid,replaces]).fetchone()
+            if row is None:
+                raise ValueError("Expense no longer exists. Reload this page.")
+            previous = dict(zip(columns, row))
+            old_shares = dict(con.execute("select member_id,share from dwd_expense_split where expense_id=?",[replaces]).fetchall())
+        if split_mode not in ("preserve", "equal"):
+            raise ValueError("Unsupported split mode.")
+        preserve = previous is not None and currency == previous["currency"] and amount == fx.decimal(previous["amount"])
+        if preserve:
+            rate, date = fx.decimal(previous["applied_fx_rate"]), previous["fx_rate_date"]
+            booked = fx.decimal(previous["booked_home_amount"])
+            fx_home = previous["fx_home_currency"]
+        else:
+            rate,date = fx.factor(con,currency,t.home_currency)
+            booked, fx_home = amount * rate, t.home_currency
+        shares = old_shares if split_mode == "preserve" and set(old_shares) == set(split) else {m:1/len(split) for m in split}
         eid = next_id(con,"dwd_expense","expense_id")
         if replaces is not None:
             _void_expense(con,tid,replaces)
         con.execute("""insert into dwd_expense(expense_id,trip_id,day_no,spent_at,title,category,amount,currency,member_id,
             fx_rate_date,booked_home_amount,booked_home_currency,fx_home_currency,applied_fx_rate,submission_id)
             values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",[eid,tid,max(0,(when-t.start_date).days+1),dt.datetime.combine(when,dt.time(12)),
-            required(title,"Expense description"),category,amount,currency,payer,date,amount*rate,t.home_currency,t.home_currency,rate,submission_id])
-        con.executemany("insert into dwd_expense_split values (?,?,?)",[(eid,m,1/len(split)) for m in split])
+            required(title,"Expense description"),category,amount,currency,payer,date,booked,t.home_currency,fx_home,rate,submission_id])
+        con.executemany("insert into dwd_expense_split values (?,?,?)",[(eid,m,shares[m]) for m in split])
         if shopping_id is not None:
             con.execute("update dwd_shopping_item set expense_id=?,is_bought=true,updated_at=now() where item_id=?",[eid,shopping_id])
         db._refresh_dws(con,tid)
@@ -160,7 +179,21 @@ def save_itinerary(con, tid, day, time, kind, title, place, locality, google_id,
             con.execute("insert into dwd_itinerary_item values (?,?,?,?,?,?,?,?,?,?)",[item_id,tid]+values)
         else:
             con.execute("update dwd_itinerary_item set day_no=?,start_time=?,kind=?,title=?,place_id=?,planned_cost=?,planned_ccy=?,notes=? where trip_id=? and item_id=?",values+[tid,item_id])
-        db._refresh_dws(con,tid)
+        db.touch_trip(con,tid)
+
+def utc_time(local, zone):
+    """Reject gaps and folds, matching Temporal disambiguation='reject'."""
+    if local.tzinfo is not None:
+        raise ValueError("Use local wall time without an offset.")
+    tz = ZoneInfo(zone)
+    candidates = set()
+    for fold in (0, 1):
+        utc = local.replace(tzinfo=tz, fold=fold).astimezone(dt.timezone.utc)
+        if utc.astimezone(tz).replace(tzinfo=None) == local:
+            candidates.add(utc)
+    if len(candidates) != 1:
+        raise ValueError("Ambiguous or nonexistent local time.")
+    return candidates.pop()
 
 def save_booking(con, tid, kind, title, provider, ref, confirmation, origin, destination, start, end, start_zone, end_zone, place, locality, google_id, price, currency, notes, booking_id=None):
     with db.transaction(con):
@@ -168,10 +201,10 @@ def save_booking(con, tid, kind, title, provider, ref, confirmation, origin, des
         if kind not in ("flight","hotel","reservation") or currency not in fx.SPEND_CURRENCIES:
             raise ValueError("Invalid booking type or currency.")
         try:
-            utc_start = start.replace(tzinfo=ZoneInfo(start_zone)).astimezone(dt.timezone.utc)
-            utc_end = end.replace(tzinfo=ZoneInfo(end_zone)).astimezone(dt.timezone.utc)
+            utc_start = utc_time(start, start_zone)
+            utc_end = utc_time(end, end_zone)
         except (KeyError,ValueError):
-            raise ValueError("Use valid IANA time zones, such as Asia/Tokyo.") from None
+            raise ValueError("請確認時區與當地時間；夏令時間切換造成的不存在或重複時間，請選擇其他明確時間。") from None
         if utc_end < utc_start:
             raise ValueError("End time must be after start time, accounting for time zones.")
         pid = _place(con,place,locality,google_id)
@@ -184,7 +217,7 @@ def save_booking(con, tid, kind, title, provider, ref, confirmation, origin, des
         else:
             con.execute("""update dwd_booking set kind=?,title=?,provider=?,ref_code=?,confirmation=?,origin=?,destination=?,starts_at=?,
                 ends_at=?,place_id=?,price=?,price_ccy=?,notes=?,start_zone=?,end_zone=? where trip_id=? and booking_id=?""",values+[tid,booking_id])
-        db._refresh_dws(con,tid)
+        db.touch_trip(con,tid)
 
 def save_shopping(con, tid, title, where, price, currency, item_id=None):
     with db.transaction(con):
@@ -196,7 +229,7 @@ def save_shopping(con, tid, title, where, price, currency, item_id=None):
             con.execute("insert into dwd_shopping_item(trip_id,title,where_hint,planned_price,planned_ccy) values (?,?,?,?,?)",[tid]+values)
         else:
             con.execute("update dwd_shopping_item set title=?,where_hint=?,planned_price=?,planned_ccy=?,updated_at=now() where trip_id=? and item_id=?",values+[tid,item_id])
-        db._refresh_dws(con,tid)
+        db.touch_trip(con,tid)
 
 def set_bought(con, tid, item_id, bought):
     with db.transaction(con):
@@ -206,11 +239,11 @@ def set_bought(con, tid, item_id, bought):
         if row[0] is not None and not bought:
             raise ValueError("Delete the linked expense before marking this item as unbought.")
         con.execute("update dwd_shopping_item set is_bought=?,updated_at=now() where trip_id=? and item_id=?",[bought,tid,item_id])
-        db._refresh_dws(con,tid)
+        db.touch_trip(con,tid)
 
 def delete_item(con, tid, table, key, value):
     if (table,key) not in (("dwd_itinerary_item","item_id"),("dwd_booking","booking_id"),("dwd_shopping_item","item_id")):
         raise ValueError("Unsupported deletion.")
     with db.transaction(con):
         con.execute(f"delete from {table} where trip_id=? and {key}=?",[tid,value])
-        db._refresh_dws(con,tid)
+        db.touch_trip(con,tid)

@@ -99,9 +99,16 @@ export interface Balance {
   owed_share_home: number;
   balance_home: number;
 }
+export type Revision = number | string;
+export interface ExpensePage {
+  revision: Revision;
+  expenses: Expense[];
+  splits: Bundle["splits"];
+  total: number;
+}
 export interface Bundle {
   trip: Trip;
-  revision: number;
+  revision: Revision;
   members: Member[];
   itinerary: Activity[];
   bookings: Booking[];
@@ -118,7 +125,13 @@ export interface Bootstrap {
   fx: Fx;
 }
 export type Editor =
-  | { kind: "expense"; row?: Expense; shopping?: Shopping }
+  | {
+      kind: "expense";
+      row?: Expense;
+      shopping?: Shopping;
+      splits?: Bundle["splits"];
+      revision?: Revision;
+    }
   | { kind: "activity"; row?: Activity; day?: number }
   | { kind: "booking"; row?: Booking }
   | { kind: "shopping"; row?: Shopping }

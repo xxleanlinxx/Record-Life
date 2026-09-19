@@ -3,12 +3,12 @@ import { Engine, type Param } from "./engine";
 import * as c from "./contracts";
 import { categories, daysBetween } from "../domain";
 import { ApiError } from "../errors";
-import type { Trip } from "../types";
+import type { Trip, Revision, Currency } from "../types";
 import { rate } from "./fx";
-import { refresh } from "./schema";
+import { refresh, touch } from "./schema";
 
 const id = () => crypto.randomUUID();
-const amount = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+import { roundMoney as amount } from "../money";
 const invalid = (message: string): never => {
   throw new ApiError(message, 400);
 };
@@ -21,14 +21,17 @@ export async function trip(e: Engine, tid: string) {
 }
 export async function revision(e: Engine, tid: string) {
   await trip(e, tid);
-  return (
-    await e.rows<{ revision: number }>(
-      "select revision from app_trip_revision where trip_id=?",
-      [tid],
-    )
-  )[0].revision;
+  const [version] = await e.rows<{ revision: number; epoch: string }>(
+    "select r.revision,m.value epoch from app_trip_revision r cross join app_metadata m where r.trip_id=? and m.key='epoch'",
+    [tid],
+  );
+  return `${version.epoch}:${version.revision}`;
 }
-export async function checkRevision(e: Engine, tid: string, expected?: number) {
+export async function checkRevision(
+  e: Engine,
+  tid: string,
+  expected?: Revision,
+) {
   if ((await revision(e, tid)) !== expected)
     throw new ApiError(
       "資料已在其他頁面更新。請重新載入後再試，避免覆蓋新的內容。",
@@ -228,7 +231,7 @@ export async function saveExpense(
   e: Engine,
   tid: string,
   body: unknown,
-  expected?: number,
+  expected?: Revision,
 ) {
   const b = c.expense.parse(body),
     existing = await e.rows<{ expense_id: number }>(
@@ -259,9 +262,46 @@ export async function saveExpense(
     )
       invalid("這件物品已經記過帳，請到支出紀錄確認。");
   }
-  const { factor, date } = await rate(e, b.currency, t.home_currency),
-    eid = await next(e, "dwd_expense", "expense_id"),
-    paid = amount(b.amount);
+  const paid = amount(b.amount);
+  const previous =
+    b.replaces == null
+      ? undefined
+      : (
+          await e.rows<{
+            amount: number;
+            currency: Currency;
+            applied_fx_rate: number;
+            fx_rate_date: string | null;
+            booked_home_amount: number;
+            fx_home_currency: Currency;
+          }>(
+            "select * from dwd_expense where trip_id=? and expense_id=? and not is_deleted",
+            [tid, b.replaces],
+          )
+        )[0];
+  if (b.replaces != null && !previous)
+    invalid("這筆支出已不存在，請重新載入。");
+  const oldShares =
+    b.replaces == null
+      ? []
+      : await e.rows<{ member_id: string; share: number }>(
+          "select member_id,share from dwd_expense_split where expense_id=?",
+          [b.replaces],
+        );
+  const preserve =
+    previous && previous.amount === paid && previous.currency === b.currency;
+  const { factor, date } = preserve
+    ? { factor: previous.applied_fx_rate, date: previous.fx_rate_date }
+    : await rate(e, b.currency, t.home_currency);
+  const booked = preserve ? previous.booked_home_amount : paid * factor;
+  const fxHome = preserve ? previous.fx_home_currency : t.home_currency;
+  const shares =
+    b.split_mode === "preserve" &&
+    oldShares.length === split.length &&
+    oldShares.every((s) => split.includes(s.member_id))
+      ? new Map(oldShares.map((s) => [s.member_id, s.share]))
+      : new Map(split.map((m) => [m, 1 / split.length]));
+  const eid = await next(e, "dwd_expense", "expense_id");
   if (b.replaces != null) await voidExpense(e, tid, b.replaces);
   await e.exec(
     `insert into dwd_expense(expense_id,trip_id,day_no,spent_at,title,category,amount,currency,member_id,fx_rate_date,booked_home_amount,booked_home_currency,fx_home_currency,applied_fx_rate,submission_id) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
@@ -276,9 +316,9 @@ export async function saveExpense(
       b.currency,
       b.payer,
       date,
-      paid * factor,
+      booked,
       t.home_currency,
-      t.home_currency,
+      fxHome,
       factor,
       b.submission_id,
     ],
@@ -287,7 +327,7 @@ export async function saveExpense(
     await e.exec("insert into dwd_expense_split values (?,?,?)", [
       eid,
       m,
-      1 / split.length,
+      shares.get(m)!,
     ]);
   if (b.shopping_id != null)
     await e.exec(
@@ -329,7 +369,7 @@ export async function saveActivity(
       "update dwd_itinerary_item set day_no=?,start_time=?,kind=?,title=?,place_id=?,planned_cost=?,planned_ccy=?,notes=? where trip_id=? and item_id=?",
       [...values, tid, itemId],
     );
-  await refresh(e, tid);
+  await touch(e, tid);
   return { ok: true };
 }
 export function utcTime(local: string, zone: string) {
@@ -386,7 +426,7 @@ export async function saveBooking(
       "update dwd_booking set kind=?,title=?,provider=?,ref_code=?,confirmation=?,origin=?,destination=?,starts_at=?,ends_at=?,place_id=?,price=?,price_ccy=?,notes=?,start_zone=?,end_zone=? where trip_id=? and booking_id=?",
       [...values, tid, bid],
     );
-  await refresh(e, tid);
+  await touch(e, tid);
   return { ok: true };
 }
 export async function saveShopping(
@@ -420,7 +460,7 @@ export async function saveShopping(
       [...values, tid, itemId],
     );
   }
-  await refresh(e, tid);
+  await touch(e, tid);
   return { ok: true };
 }
 export async function bought(
@@ -441,7 +481,7 @@ export async function bought(
     "update dwd_shopping_item set is_bought=?,updated_at=now() where item_id=?",
     [b.bought, itemId],
   );
-  await refresh(e, tid);
+  await touch(e, tid);
   return { ok: true };
 }
 export async function remove(
@@ -465,6 +505,7 @@ export async function remove(
       itemId,
     ]);
   }
-  await refresh(e, tid);
+  if (kind === "expenses") await refresh(e, tid);
+  else await touch(e, tid);
   return { ok: true };
 }
