@@ -1,11 +1,5 @@
-import {
-  ArrowUpRight,
-  CalendarDays,
-  Plus,
-  MapPin,
-  Wallet,
-  Plane,
-} from "lucide-react";
+import TripDays from "../components/TripDays";
+import { ArrowUpRight, CalendarDays, Plus, MapPin, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Bundle, OpenEditor } from "../lib/types";
 import { money, phase, shortDate, mapUrl, categories } from "../lib/domain";
@@ -33,10 +27,166 @@ export default function Overview({
     remaining = trip.budget_home - spent;
   const items = data.itinerary.filter((i) => i.day_no === p.day);
   const ratio = trip.budget_home ? (spent / trip.budget_home) * 100 : 0;
+  const itinerary = (
+    <Section
+      title={
+        p.before
+          ? "第一天，從這裡開始"
+          : p.after
+            ? "旅行最後一天"
+            : "今天的安排"
+      }
+      meta={`DAY ${String(p.day).padStart(2, "0")} · ${items.length} 個停留點`}
+      action={<CardLink onClick={() => nav("/plan")}>完整行程</CardLink>}
+    >
+      <div className="card timeline-preview">
+        {items.length ? (
+          items.slice(0, 4).map((item, index) => (
+            <div className="preview-stop" key={item.item_id}>
+              <div className="stop-line">
+                <i />
+                {index < Math.min(items.length, 4) - 1 && <span />}
+              </div>
+              <time>{item.start_time}</time>
+              <div>
+                <strong>{item.title}</strong>
+                <p>{item.place || item.notes || "讓今天多一點期待"}</p>
+              </div>
+              {item.place && (
+                <a
+                  className="icon-button"
+                  href={mapUrl(item.place, item.locality, item.gmaps_place_id)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`在 Google Maps 開啟${item.title}`}
+                >
+                  <ArrowUpRight size={18} />
+                </a>
+              )}
+            </div>
+          ))
+        ) : (
+          <Empty
+            title="第一個停留點，想去哪裡？"
+            action={
+              <Button
+                variant="secondary"
+                onClick={() => edit({ kind: "activity", day: p.day })}
+              >
+                <Plus size={16} />
+                新增行程
+              </Button>
+            }
+          >
+            景點、餐廳或散步的街道，都可以放進來。
+          </Empty>
+        )}
+      </div>
+    </Section>
+  );
+  const recent = (
+    <Section
+      title="最近記下的花費"
+      action={<CardLink onClick={() => nav("/budget")}>全部支出</CardLink>}
+    >
+      <div className="card expense-list">
+        {data.expenses.length ? (
+          data.expenses.slice(0, 4).map((e) => (
+            <button
+              className="expense-row"
+              key={e.expense_id}
+              onClick={() => edit({ kind: "expense", row: e })}
+            >
+              <CategoryIcon category={e.category} />
+              <span className="row-copy">
+                <strong>{e.title}</strong>
+                <small>
+                  {e.payer} 付款 · {categories[e.category]} ·{" "}
+                  {shortDate(e.spent_at)}
+                </small>
+              </span>
+              <span className="row-amount">
+                <strong>{money(e.amount_home, trip.home_currency)}</strong>
+                {e.currency !== trip.home_currency && (
+                  <small>{money(e.amount, e.currency)}</small>
+                )}
+              </span>
+            </button>
+          ))
+        ) : (
+          <Empty
+            title="還沒有支出紀錄"
+            action={
+              <Button
+                variant="secondary"
+                onClick={() => edit({ kind: "expense" })}
+              >
+                記下第一筆
+              </Button>
+            }
+          >
+            先把預算準備好，旅途中再慢慢記錄。
+          </Empty>
+        )}
+      </div>
+    </Section>
+  );
+  const budget = (
+    <Section title="旅費，心裡有個底">
+      <div className="card budget-card">
+        <div className="card-kicker">
+          <Wallet size={17} />
+          剩餘預算
+        </div>
+        <div className={`large-money ${remaining < 0 ? "negative" : ""}`}>
+          {money(remaining, trip.home_currency)}
+        </div>
+        <p>總預算 {money(trip.budget_home, trip.home_currency)}</p>
+        <Progress value={ratio} label="已使用預算" />
+        <div className="budget-foot">
+          <span>已花費 {money(spent, trip.home_currency)}</span>
+          <strong>{Math.round(ratio)}%</strong>
+        </div>
+        {p.left > 0 && trip.budget_home > 0 && (
+          <div className="daily-allowance">
+            <span>接下來每天約可花</span>
+            <strong>
+              {money(Math.max(0, remaining / p.left), trip.home_currency)}
+            </strong>
+          </div>
+        )}
+        <Button variant="secondary" onClick={() => nav("/budget")}>
+          查看預算明細
+          <ArrowUpRight size={16} />
+        </Button>
+      </div>
+    </Section>
+  );
+  const notes = (
+    <>
+      <div className="note-card">
+        <MapPin size={22} />
+        <h3>計畫之外，也值得記下。</h3>
+        <p>
+          多留一點時間給巷口的咖啡店，
+          <br />
+          或是剛好遇見的風景。
+        </p>
+      </div>
+      <div className="fx-note">
+        <span className={`status-dot ${data.fx.date ? "" : "muted-dot"}`} />
+        {data.fx.date ? `換算匯率 ${data.fx.date}` : "尚未同步匯率"}
+        <button onClick={() => nav("/settings")}>查看</button>
+      </div>
+    </>
+  );
   return (
     <>
       <div className="journey-hero">
         <div>
+          <div className="journal-title" aria-hidden="true">
+            Travel Journal
+          </div>
           <span className="eyebrow">
             <span className="status-dot" />
             {p.label}
@@ -60,173 +210,75 @@ export default function Overview({
                 : `${data.members.length} 位旅伴，一起出發`}
             </span>
           </div>
+          <svg className="journal-wave" viewBox="0 0 180 20" aria-hidden="true">
+            <path
+              d="M2 10 Q24 0 46 10 T90 10 T134 10 T178 10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
+          </svg>
         </div>
-        <div className="hero-stamp" aria-hidden="true">
-          <Plane size={40} strokeWidth={1} />
+      </div>
+      <div className="trip-facts">
+        <div>
+          <small>旅程日期</small>
+          <strong>
+            {shortDate(trip.start_date)} — {shortDate(trip.end_date)}
+          </strong>
           <span>
-            GO SOMEWHERE
-            <br />
-            MAKE MEMORIES
+            {trip.n_days} 天 · {data.members.length} 位旅伴
+          </span>
+        </div>
+        <div>
+          <small>航班與交通</small>
+          <strong>
+            {data.bookings.find((b) => b.kind === "flight")?.title ??
+              "尚未安排航班"}
+          </strong>
+          <span>
+            {data.bookings.filter((b) => b.kind === "flight").length} 筆航班預訂
+          </span>
+        </div>
+        <div>
+          <small>住宿</small>
+          <strong>
+            {data.bookings.find((b) => b.kind === "hotel")?.title ??
+              "尚未安排住宿"}
+          </strong>
+          <span>
+            {data.bookings.filter((b) => b.kind === "hotel").length} 筆住宿預訂
           </span>
         </div>
       </div>
-      <div className="overview-grid">
-        <div>
+      {p.before && <TripDays data={data} />}
+      <div
+        className={`overview-grid ${p.before ? "before-trip" : p.after ? "after-trip" : "during-trip"}`}
+      >
+        {(p.before || p.after) && (
+          <div className="overview-budget">{budget}</div>
+        )}
+        {!p.after && <div className="overview-itinerary">{itinerary}</div>}
+        {!p.before && !p.after && (
+          <div className="overview-budget">{budget}</div>
+        )}
+        <div className="overview-expenses">{recent}</div>
+        {p.after && (
           <Section
-            title={
-              p.before
-                ? "第一天，從這裡開始"
-                : p.after
-                  ? "旅行最後一天"
-                  : "今天的安排"
-            }
-            meta={`DAY ${String(p.day).padStart(2, "0")} · ${items.length} 個停留點`}
-            action={<CardLink onClick={() => nav("/plan")}>完整行程</CardLink>}
-          >
-            <div className="card timeline-preview">
-              {items.length ? (
-                items.slice(0, 4).map((item, index) => (
-                  <div className="preview-stop" key={item.item_id}>
-                    <div className="stop-line">
-                      <i />
-                      {index < Math.min(items.length, 4) - 1 && <span />}
-                    </div>
-                    <time>{item.start_time}</time>
-                    <div>
-                      <strong>{item.title}</strong>
-                      <p>{item.place || item.notes || "讓今天多一點期待"}</p>
-                    </div>
-                    {item.place && (
-                      <a
-                        className="icon-button"
-                        href={mapUrl(
-                          item.place,
-                          item.locality,
-                          item.gmaps_place_id,
-                        )}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`在 Google Maps 開啟${item.title}`}
-                      >
-                        <ArrowUpRight size={18} />
-                      </a>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <Empty
-                  title="第一個停留點，想去哪裡？"
-                  action={
-                    <Button
-                      variant="secondary"
-                      onClick={() => edit({ kind: "activity", day: p.day })}
-                    >
-                      <Plus size={16} />
-                      新增行程
-                    </Button>
-                  }
-                >
-                  景點、餐廳或散步的街道，都可以放進來。
-                </Empty>
-              )}
-            </div>
-          </Section>
-          <Section
-            title="最近記下的花費"
+            title="旅行已結束，整理這次回憶"
             action={
-              <CardLink onClick={() => nav("/budget")}>全部支出</CardLink>
+              <CardLink onClick={() => nav("/budget")}>查看結算</CardLink>
             }
           >
-            <div className="card expense-list">
-              {data.expenses.length ? (
-                data.expenses.slice(0, 4).map((e) => (
-                  <button
-                    className="expense-row"
-                    key={e.expense_id}
-                    onClick={() => edit({ kind: "expense", row: e })}
-                  >
-                    <CategoryIcon category={e.category} />
-                    <span className="row-copy">
-                      <strong>{e.title}</strong>
-                      <small>
-                        {e.payer} 付款 · {categories[e.category]} ·{" "}
-                        {shortDate(e.spent_at)}
-                      </small>
-                    </span>
-                    <span className="row-amount">
-                      <strong>
-                        {money(e.amount_home, trip.home_currency)}
-                      </strong>
-                      {e.currency !== trip.home_currency && (
-                        <small>{money(e.amount, e.currency)}</small>
-                      )}
-                    </span>
-                  </button>
-                ))
-              ) : (
-                <Empty
-                  title="還沒有支出紀錄"
-                  action={
-                    <Button
-                      variant="secondary"
-                      onClick={() => edit({ kind: "expense" })}
-                    >
-                      記下第一筆
-                    </Button>
-                  }
-                >
-                  先把預算準備好，旅途中再慢慢記錄。
-                </Empty>
-              )}
-            </div>
-          </Section>
-        </div>
-        <aside className="overview-aside">
-          <Section title="旅費，心裡有個底">
-            <div className="card budget-card">
-              <div className="card-kicker">
-                <Wallet size={17} />
-                剩餘預算
-              </div>
-              <div className={`large-money ${remaining < 0 ? "negative" : ""}`}>
-                {money(remaining, trip.home_currency)}
-              </div>
-              <p>總預算 {money(trip.budget_home, trip.home_currency)}</p>
-              <Progress value={ratio} label="已使用預算" />
-              <div className="budget-foot">
-                <span>已花費 {money(spent, trip.home_currency)}</span>
-                <strong>{Math.round(ratio)}%</strong>
-              </div>
-              {p.left > 0 && trip.budget_home > 0 && (
-                <div className="daily-allowance">
-                  <span>接下來每天約可花</span>
-                  <strong>
-                    {money(Math.max(0, remaining / p.left), trip.home_currency)}
-                  </strong>
-                </div>
-              )}
-              <Button variant="secondary" onClick={() => nav("/budget")}>
-                查看預算明細
-                <ArrowUpRight size={16} />
-              </Button>
-            </div>
-          </Section>
-          <div className="note-card">
-            <MapPin size={22} />
-            <h3>計畫之外，也值得記下。</h3>
             <p>
-              多留一點時間給巷口的咖啡店，
-              <br />
-              或是剛好遇見的風景。
+              這趟旅程共記下 {data.daily.reduce((n, d) => n + d.n_entries, 0)}{" "}
+              筆花費，可到預算頁核對旅伴分帳。
             </p>
-          </div>
-          <div className="fx-note">
-            <span className={`status-dot ${data.fx.date ? "" : "muted-dot"}`} />
-            {data.fx.date ? `換算匯率 ${data.fx.date}` : "尚未同步匯率"}
-            <button onClick={() => nav("/settings")}>查看</button>
-          </div>
-        </aside>
+          </Section>
+        )}
+        <aside className="overview-notes">{notes}</aside>
       </div>
+      {!p.before && <TripDays data={data} />}
     </>
   );
 }

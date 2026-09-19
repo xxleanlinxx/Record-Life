@@ -1,4 +1,14 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useContext,
+  useId,
+  createContext,
+  isValidElement,
+  cloneElement,
+  type ReactNode,
+} from "react";
 import { X, ArrowRight, Compass, LoaderCircle } from "lucide-react";
 
 export function Button({
@@ -43,6 +53,7 @@ export function Empty({
     </div>
   );
 }
+export const FieldErrorsContext = createContext<Record<string, string>>({});
 export function Field({
   label,
   hint,
@@ -54,11 +65,30 @@ export function Field({
   children: ReactNode;
   wide?: boolean;
 }) {
+  const errors = useContext(FieldErrorsContext);
+  const id = useId();
+  const child = isValidElement<{
+    name?: string;
+    "aria-invalid"?: boolean;
+    "aria-describedby"?: string;
+  }>(children)
+    ? children
+    : null;
+  const error = child?.props.name ? errors[child.props.name] : undefined;
   return (
     <label className={`field ${wide ? "wide" : ""}`}>
       <span>{label}</span>
-      {children}
-      {hint && <small>{hint}</small>}
+      {child
+        ? cloneElement(child, {
+            "aria-invalid": !!error,
+            "aria-describedby": error || hint ? id : undefined,
+          })
+        : children}
+      {(error || hint) && (
+        <small id={id} className={error ? "field-error" : undefined}>
+          {error || hint}
+        </small>
+      )}
     </label>
   );
 }
@@ -133,9 +163,18 @@ export function Modal({
     const dialog = ref.current!;
     const previous = document.activeElement;
     dialog.showModal();
+    const viewport = window.visualViewport;
+    const resize = () =>
+      dialog.style.setProperty(
+        "--viewport-height",
+        `${viewport?.height ?? window.innerHeight}px`,
+      );
+    resize();
+    viewport?.addEventListener("resize", resize);
     const old = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
+      viewport?.removeEventListener("resize", resize);
       dialog.close();
       document.body.style.overflow = old;
       const target =

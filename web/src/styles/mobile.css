@@ -1,0 +1,151 @@
+/* Content order matches the DOM and is selected by trip phase. */
+.overview-grid {
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 1fr);
+  align-items: start;
+}
+.overview-itinerary,
+.overview-expenses {
+  grid-column: 1;
+}
+.overview-budget {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.overview-notes {
+  grid-column: 2;
+}
+.overview-grid > * {
+  min-width: 0;
+}
+.field-error {
+  color: #963c25;
+}
+[aria-invalid="true"] {
+  border-color: #963c25;
+}
+.split-reset {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  margin-top: 16px;
+}
+.booking-time-group {
+  border: 1px solid var(--line);
+  padding: 16px;
+  border-radius: 12px;
+}
+.booking-time-group legend {
+  padding: 0 6px;
+}
+.booking-bottom > div,
+.booking-times > div,
+.booking-card,
+.settings-card {
+  min-width: 0;
+}
+.booking-card h2,
+.booking-card p,
+.booking-times strong,
+.booking-times small,
+.confirmation-code,
+.booking-bottom strong,
+.settings-card h3,
+.member-list span,
+.large-money,
+.budget-summary strong,
+.balance-row strong {
+  overflow-wrap: anywhere;
+}
+.confirmation-code {
+  text-align: left;
+  word-break: break-all;
+}
+.booking-bottom strong {
+  line-height: 1.6;
+}
+@media (max-width: 620px) {
+  .overview-grid {
+    display: flex;
+    flex-direction: column;
+  }
+  .overview-grid > * {
+    width: 100%;
+  }
+  .during-trip .journey-hero {
+    padding-bottom: 12px;
+  }
+  .during-trip .budget-card {
+    padding: 16px;
+  }
+  .during-trip .budget-card .large-money {
+    font-size: 26px;
+  }
+  .during-trip .daily-allowance {
+    display: none;
+  }
+  .overview-notes .note-card {
+    display: none;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-grid .wide {
+    grid-column: auto;
+  }
+  .amount-entry {
+    grid-template-columns: minmax(0, 1fr) 140px;
+  }
+  .sheet-heading p,
+  .field > small {
+    font-size: 13px;
+  }
+  .field > span,
+  .choice-field legend {
+    font-size: 14px;
+  }
+  .trip-switch select,
+  .entry-toolbar > select {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .shopping-row .check-button {
+    width: 44px;
+  }
+  .booking-times {
+    gap: 8px;
+  }
+  .booking-arrow span {
+    width: 8px;
+  }
+  .row-amount {
+    max-width: 48%;
+    overflow-wrap: anywhere;
+  }
+  .budget-foot {
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .budget-summary strong {
+    font-size: 22px;
+  }
+  .page-title {
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .hero-stamp {
+    display: none;
+  }
+  .journey-hero h1 {
+    font-size: 28px;
+  }
+  .hero-members {
+    margin-top: 8px;
+  }
+  .section-heading {
+    flex-wrap: wrap;
+  }
+  .sheet-footer .button {
+    white-space: normal;
+  }
+}

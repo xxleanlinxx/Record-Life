@@ -1,4 +1,8 @@
-import { useState } from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "../lib/api";
+import { errorMessage } from "../lib/domain";
+import { usePageParams } from "../navigation";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -26,9 +30,13 @@ export default function Budget({
   data: Bundle;
   edit: OpenEditor;
 }) {
-  const [view, setView] = useState("category"),
-    [search, setSearch] = useState(""),
-    [filter, setFilter] = useState("all");
+  const [params, update] = usePageParams();
+  const view = params.get("view") === "daily" ? "daily" : "category",
+    search = params.get("q") ?? "",
+    filter = params.get("category") ?? "all";
+  const setView = (view: string) => update({ view });
+  const setSearch = (q: string) => update({ q, page: "1" });
+  const setFilter = (category: string) => update({ category, page: "1" });
   const { trip } = data,
     H = trip.home_currency,
     spent = data.daily.reduce((s, d) => s + d.spent_home, 0),
@@ -36,11 +44,24 @@ export default function Budget({
     p = phase(trip);
   const balances = settlementBalances(data.balances);
   const transfers = settlements(balances);
-  const entries = data.expenses.filter(
-    (e) =>
-      (filter === "all" || e.category === filter) &&
-      `${e.title} ${e.payer}`.toLowerCase().includes(search.toLowerCase()),
-  );
+  const requestedPage = Number(params.get("page") ?? "1");
+  const page =
+    Number.isSafeInteger(requestedPage) &&
+    requestedPage > 0 &&
+    requestedPage <= 1000000
+      ? requestedPage
+      : 1;
+  const result = useQuery({
+    queryKey: ["trip", trip.trip_id, "expenses", search, filter, page],
+    queryFn: () => api.expenses(trip.trip_id, search, filter, page),
+  });
+  const entries = result.data?.expenses ?? [];
+  const totalEntries = data.daily.reduce((n, d) => n + d.n_entries, 0);
+  const pages = Math.max(1, Math.ceil((result.data?.total ?? 0) / 50));
+  useEffect(() => {
+    if (result.data && page > pages) update({ page: String(pages) });
+  }, [result.data, page, pages]);
+  const maxDaily = Math.max(...data.daily.map((d) => d.spent_home), 1);
   return (
     <>
       <div className="page-title">
@@ -60,7 +81,7 @@ export default function Budget({
             已花費
           </span>
           <strong>{money(spent, H)}</strong>
-          <small>共 {data.expenses.length} 筆支出</small>
+          <small>共 {totalEntries} 筆支出</small>
         </div>
         <div className="card highlighted">
           <span>剩餘預算</span>
@@ -146,7 +167,7 @@ export default function Budget({
                     <div>
                       <i
                         style={{
-                          width: `${(d.spent_home / Math.max(...data.daily.map((x) => x.spent_home), 1)) * 100}%`,
+                          width: `${(d.spent_home / maxDaily) * 100}%`,
                         }}
                       />
                     </div>
@@ -204,13 +225,14 @@ export default function Budget({
       </div>
       <Section
         title="每一筆，都記得"
-        meta={`${data.expenses.length} 筆紀錄 · 點選一筆可編輯`}
+        meta={`${totalEntries} 筆紀錄 · 點選一筆可編輯`}
       >
         <div className="entry-toolbar">
           <label className="search">
             <Search size={18} />
             <input
               aria-label="搜尋支出"
+              maxLength={240}
               placeholder="搜尋花費或付款人"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -229,13 +251,27 @@ export default function Budget({
             ))}
           </select>
         </div>
-        <div className="card expense-list">
-          {entries.length ? (
+        <div className="card expense-list" aria-busy={result.isFetching}>
+          {result.isPending ? (
+            <p role="status">正在載入支出…</p>
+          ) : result.error ? (
+            <div role="alert">
+              <p>{errorMessage(result.error)}</p>
+              <Button onClick={() => void result.refetch()}>重試</Button>
+            </div>
+          ) : entries.length ? (
             entries.map((e) => (
               <button
                 className="expense-row"
                 key={e.expense_id}
-                onClick={() => edit({ kind: "expense", row: e })}
+                onClick={() =>
+                  edit({
+                    kind: "expense",
+                    row: e,
+                    splits: result.data!.splits,
+                    revision: result.data!.revision,
+                  })
+                }
               >
                 <CategoryIcon category={e.category} />
                 <span className="row-copy">
@@ -256,17 +292,34 @@ export default function Budget({
               </button>
             ))
           ) : (
-            <Empty
-              title={
-                data.expenses.length ? "沒有符合的紀錄" : "從第一筆花費開始"
-              }
-            >
-              {data.expenses.length
+            <Empty title={totalEntries ? "沒有符合的紀錄" : "從第一筆花費開始"}>
+              {totalEntries
                 ? "換個關鍵字或分類試試。"
                 : "記下每一筆，預算就會自動更新。"}
             </Empty>
           )}
         </div>
+        {result.data && pages > 1 && (
+          <nav className="pagination" aria-label="支出分頁">
+            <Button
+              variant="secondary"
+              disabled={page <= 1}
+              onClick={() => update({ page: String(page - 1) })}
+            >
+              上一頁
+            </Button>
+            <span aria-live="polite">
+              第 {page} / {pages} 頁 · {result.data.total} 筆
+            </span>
+            <Button
+              variant="secondary"
+              disabled={page >= pages}
+              onClick={() => update({ page: String(page + 1) })}
+            >
+              下一頁
+            </Button>
+          </nav>
+        )}
       </Section>
     </>
   );

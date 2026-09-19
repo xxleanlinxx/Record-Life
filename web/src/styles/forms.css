@@ -1,0 +1,247 @@
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: none;
+  align-items: center;
+  gap: 14px;
+  border-radius: 12px;
+  background: #243f39;
+  color: white;
+  padding: 13px 17px;
+  max-width: calc(100vw - 32px);
+  font-size: 13px;
+  box-shadow: 0 6px 30px #16342833;
+}
+.toast.visible {
+  display: flex;
+}
+.toast button {
+  display: grid;
+  place-items: center;
+  color: white;
+  min-width: 36px;
+  min-height: 36px;
+}
+.sheet {
+  border: 0;
+  border-radius: 22px;
+  padding: 0;
+  width: min(620px, calc(100% - 32px));
+  max-height: calc(var(--viewport-height, 100dvh) - 24px);
+  color: #2d1a0e;
+  box-shadow: 0 20px 100px #152c4c30;
+  overflow: hidden;
+  background: #fff;
+}
+.sheet[open] {
+  display: flex;
+  flex-direction: column;
+}
+.sheet::backdrop {
+  background: #172c2866;
+  backdrop-filter: blur(3px);
+}
+.sheet-heading {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 25px 28px 20px;
+  border-bottom: 1px solid #e8ece3;
+}
+.sheet-heading h2 {
+  font-size: 21px;
+}
+.sheet-heading p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 7px;
+}
+.sheet form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.sheet-body {
+  flex: 1 1 auto;
+  padding: 25px 28px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  min-height: 0;
+}
+.sheet-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #e8ece3;
+  padding: 17px 28px;
+  background: #fafbf8;
+  flex-shrink: 0;
+}
+.sheet-footer .delete-button {
+  margin-right: auto;
+  color: #a54438;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.field > span {
+  font-size: 12px;
+  font-weight: 600;
+}
+.field > small {
+  font-size: 10px;
+  color: var(--muted);
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 16px;
+}
+.form-grid .wide {
+  grid-column: 1/-1;
+}
+.amount-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 155px;
+  gap: 16px;
+  align-items: end;
+}
+.amount-entry input {
+  font-size: 36px;
+  font-weight: 600;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 2px solid #d2dec9;
+  border-radius: 0;
+  height: 66px;
+  letter-spacing: -1px;
+}
+.amount-entry select {
+  background: #f2f5ee;
+  font-size: 13px;
+}
+.conversion-preview {
+  padding: 13px 0 21px;
+  color: #5e765b;
+  font-size: 13px;
+}
+.conversion-preview small {
+  display: block;
+  font-size: 10px;
+  margin-top: 5px;
+  color: var(--muted);
+}
+.choice-field {
+  margin: 12px 0 24px;
+}
+.choice-field legend small {
+  font-size: 10px;
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 7px;
+}
+.category-choices {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 6px;
+}
+.category-choices button {
+  min-height: 44px;
+  border: 1px solid #d9e2d3;
+  border-radius: 8px;
+  font-size: 12px;
+}
+.category-choices button[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-weight: 600;
+}
+.member-choices {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.member-choices label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #dbe3d4;
+  padding: 10px 13px;
+  min-height: 44px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+.choice-field:has(.member-choices) {
+  margin-top: 25px;
+  margin-bottom: 0;
+}
+.info-banner {
+  border-radius: 9px;
+  padding: 14px;
+  background: #f0f5e9;
+  color: #58734e;
+  font-size: 11px;
+  margin-top: 22px;
+  line-height: 1.8;
+}
+.error-banner {
+  background: #fff0e9;
+  border: 1px solid #f0c7b6;
+  border-radius: 10px;
+  padding: 14px;
+  color: #963c25;
+  font-size: 13px;
+  margin-bottom: 18px;
+  line-height: 1.8;
+}
+.error-banner button {
+  text-decoration: underline;
+  margin-left: 10px;
+}
+.advanced {
+  margin-top: 24px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.advanced summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--muted);
+  padding: 10px 0;
+  min-height: 44px;
+}
+.advanced .form-grid,
+.advanced .field {
+  margin-top: 12px;
+}
+.discard {
+  padding: 28px;
+  font-size: 13px;
+}
+.discard .actions {
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+.delete-confirm p {
+  font-size: 13px;
+  margin: 16px 0 24px;
+  color: var(--muted);
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

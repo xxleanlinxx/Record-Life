@@ -1,0 +1,140 @@
+.app-shell {
+  min-height: 100vh;
+}
+.workspace {
+  min-width: 0;
+}
+.topbar {
+  height: 84px;
+  padding: 0 42px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+.trip-switch {
+  max-width: 300px;
+  min-width: 0;
+}
+.trip-switch select {
+  font-size: 13px;
+  background: transparent;
+  border: 0;
+  padding-left: 0;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.local-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-right: 8px;
+}
+.local-status i,
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #51816b;
+}
+.mobile-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--accent);
+}
+main {
+  max-width: 1240px;
+  margin: auto;
+  padding: 36px 42px 25px;
+  min-height: calc(100vh - 150px);
+}
+main:focus {
+  outline: none;
+}
+.page-footer {
+  padding: 20px 42px 30px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--muted);
+  max-width: 1240px;
+  margin: auto;
+}
+.page-footer span {
+  letter-spacing: 2px;
+}
+
+/* One navigation landmark at every viewport size. */
+.option-menu {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  padding: calc(8px + env(safe-area-inset-top, 0px))
+    max(12px, env(safe-area-inset-right, 0px)) 8px
+    max(12px, env(safe-area-inset-left, 0px));
+  background: #f2eadc;
+  border-bottom: 1px solid var(--line);
+}
+.option-menu > a,
+.option-menu > button {
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #765a43;
+}
+.option-menu > a:hover,
+.option-menu > button:hover {
+  background: #efe2d0;
+}
+.option-menu > a.active {
+  background: var(--accent);
+  color: white;
+}
+.option-menu > .option-record {
+  color: #9a452f;
+}
+.option-menu > button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+html {
+  scroll-padding-top: 96px;
+}
+main:focus {
+  scroll-margin-top: 96px;
+}
+@media (max-width: 620px) {
+  .option-menu {
+    gap: 3px;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+  .option-menu > a,
+  .option-menu > button {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    min-height: 60px;
+  }
+}

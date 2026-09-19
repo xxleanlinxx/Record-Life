@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { dayColor } from "../lib/presentation";
+import { usePageParams } from "../navigation";
+import { useEffect, useRef, type CSSProperties } from "react";
 import {
   ArrowUpRight,
   Check,
@@ -31,12 +33,33 @@ export default function Plan({
   edit: OpenEditor;
   bought: (item: Shopping, value: boolean) => void;
 }) {
-  const [mode, setMode] = useState<"days" | "shopping">("days"),
-    [day, setDay] = useState(phase(data.trip).day);
+  const [params, update] = usePageParams();
+  const mode = params.get("view") === "shopping" ? "shopping" : "days";
+  const setMode = (view: string) => update({ view });
+  const requested = Number(params.get("day") ?? phase(data.trip).day);
+  const day = Number.isInteger(requested)
+    ? Math.max(1, Math.min(data.trip.n_days, requested))
+    : phase(data.trip).day;
+  const layout = params.get("layout") === "cards" ? "cards" : "timeline";
+  const setDay = (day: number) => update({ day: String(day) });
+  const rail = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const selected = rail.current?.querySelector<HTMLElement>(
+      '[aria-pressed="true"]',
+    );
+    if (selected && rail.current)
+      rail.current.scrollLeft =
+        selected.offsetLeft -
+        rail.current.offsetLeft -
+        (rail.current.clientWidth - selected.clientWidth) / 2;
+  }, [day, mode]);
   const items = data.itinerary.filter((i) => i.day_no === day),
     date = addDays(data.trip.start_date, day - 1);
   return (
-    <>
+    <div
+      className="plan-page"
+      style={{ "--day-color": dayColor(day) } as CSSProperties}
+    >
       <div className="page-title">
         <div>
           <span className="eyebrow">A LITTLE PLAN, A LOT OF POSSIBILITY</span>
@@ -73,11 +96,12 @@ export default function Plan({
       </div>
       {mode === "days" ? (
         <>
-          <div className="day-rail" aria-label="選擇旅行日期">
+          <div ref={rail} className="day-rail" aria-label="選擇旅行日期">
             {Array.from({ length: data.trip.n_days }, (_, i) => i + 1).map(
               (d) => (
                 <button
                   key={d}
+                  style={{ "--day-color": dayColor(d) } as CSSProperties}
                   aria-pressed={day === d}
                   onClick={() => setDay(d)}
                 >
@@ -97,11 +121,39 @@ export default function Plan({
               ),
             )}
           </div>
+          <div className="day-banner">
+            <span>Day {String(day).padStart(2, "0")}</span>
+            <h2>
+              {shortDate(date)}・{weekday(date)}
+            </h2>
+            <p>
+              {items.length
+                ? items
+                    .slice(0, 3)
+                    .map((item) => item.place || item.title)
+                    .join(" · ")
+                : "把喜歡的地方，慢慢排進今天。"}
+            </p>
+          </div>
+          <div className="segmented layout-switch" aria-label="行程呈現方式">
+            <button
+              aria-pressed={layout === "timeline"}
+              onClick={() => update({ layout: "timeline" })}
+            >
+              時間軸
+            </button>
+            <button
+              aria-pressed={layout === "cards"}
+              onClick={() => update({ layout: "cards" })}
+            >
+              卡片總覽
+            </button>
+          </div>
           <Section
-            title={`${shortDate(date)}・${weekday(date)}`}
+            title="景點與活動"
             meta={`${items.length} 個停留點 · 按時間慢慢走`}
           >
-            <div className="timeline">
+            <div className={layout === "cards" ? "activity-grid" : "timeline"}>
               {items.length ? (
                 items.map((item, i) => (
                   <div className="timeline-item" key={item.item_id}>
@@ -153,7 +205,8 @@ export default function Plan({
                         </button>
                       </div>
                     </div>
-                    {i < items.length - 1 &&
+                    {layout === "timeline" &&
+                      i < items.length - 1 &&
                       item.place &&
                       items[i + 1].place && (
                         <a
@@ -202,7 +255,7 @@ export default function Plan({
       ) : (
         <ShoppingList data={data} edit={edit} bought={bought} />
       )}
-    </>
+    </div>
   );
 }
 function ShoppingList({

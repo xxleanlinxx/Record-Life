@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { usePageParams } from "../navigation";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -24,7 +24,9 @@ export default function Bookings({
   edit: OpenEditor;
   notify: (message: string) => void;
 }) {
-  const [kind, setKind] = useState("all");
+  const [params, update] = usePageParams();
+  const kind = params.get("kind") ?? "all";
+  const setKind = (kind: string) => update({ kind });
   const items = data.bookings.filter((b) => kind === "all" || b.kind === kind);
   const labels = { flight: "航班", hotel: "住宿", reservation: "餐廳" };
   const icons = { flight: Plane, hotel: BedDouble, reservation: Utensils };
