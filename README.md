@@ -20,6 +20,8 @@ npm --prefix web run preview -- --port 5173
 
 ## 使用流程
 
+兩個版本都採上方 Home／Plan／＋ Record／Bookings／Budget 選單。介面參考旅遊指引，以暖色卡片整理每日路線；點選首頁日期卡片可直接編輯該天，Plan 可切換時間軸與卡片。React 的日期／搜尋／分類會在頁面返回時保留。
+
 - **總覽**：查看旅程進度、可用預算、最近安排，隨時記一筆花費。
 - **行程**：按日期安排景點、交通與餐飲；地點直接連到 Google Maps。購物清單可一鍵帶入記帳。
 - **預訂**：航班、住宿、餐廳分開查看，保存確認碼與各地當地時間／時區。預訂價格不會重複算成已付支出。
@@ -79,7 +81,9 @@ python3 -m venv .venv
 npm --prefix web run test:e2e
 ```
 
-CI 會執行兩種模式。詳見 [架構決策](ARCHITECTURE.md) 與 [本機驗證紀錄](LOCAL_VALIDATION.md)。目前針對個人資料量，尚無跨裝置背景同步；真實 iOS／Android 裝置仍需額外驗收。
+Streamlit 瀏覽器回歸：`npm --prefix web run test:streamlit`。效能基準：`npm --prefix web run benchmark:device`。
+
+CI 會執行三條介面路徑。本次實作及效能數據見 [IMPLEMENTATION.md](IMPLEMENTATION.md)。詳見 [架構決策](ARCHITECTURE.md) 與 [本機驗證紀錄](LOCAL_VALIDATION.md)。目前針對個人資料量，尚無跨裝置背景同步；真實 iOS／Android 裝置仍需額外驗收。
 
 ## 選用原生 DuckDB API／Streamlit
 
@@ -93,3 +97,19 @@ CI 會執行兩種模式。詳見 [架構決策](ARCHITECTURE.md) 與 [本機驗
 此模式前端連 `8000` API，使用 `data/record_life.duckdb`，與瀏覽器裝置資料獨立。遠端 API 可透過 `VITE_STORAGE_MODE=server` 與 `VITE_API_URL=https://你的-api-網域` 選用，需自行配置持久磁碟、HTTPS、`RECORD_LIFE_API_TOKEN` 及 `RECORD_LIFE_ORIGINS`。密碼不可放進 `VITE_*`。API 採單一 process，不能讓多個 worker 共寫檔案。
 
 要啟動原 Streamlit，先停止同檔案的 API，再執行 `.venv/bin/python -m streamlit run app.py --server.address 127.0.0.1`。此路徑需安裝 `requirements.txt`。
+
+### Streamlit 線上資料保存
+
+Streamlit 入口為 `app.py`，預設寫入伺服器的 `data/record_life.duckdb`。這與 React 裝置版的 IndexedDB 是兩份獨立資料。
+
+Streamlit Community Cloud **不保證本機檔案持久保存**，不能把寫入本機 DuckDB 視為雲端永久保存；重建、重新部署或平台清理後可能遺失。[Streamlit 官方儲存說明](https://docs.streamlit.io/develop/concepts/connections/connecting-to-data)
+
+保留 DuckDB 時，請在提供持久磁碟的主機部署，掛載磁碟並設定 `RECORD_LIFE_DB=/持久磁碟/record_life.duckdb`，維持單一 writer process，另行備份。只更改路徑字串不會建立持久磁碟。Community Cloud 若需可靠保存，須另接外部持久儲存；本 repo 尚未實作這項整合。
+
+本 repo 提供 `Dockerfile.streamlit` 與具名持久磁碟設定，供自己的主機使用：
+
+```bash
+docker compose -f compose.streamlit.yaml up -d --build
+```
+
+開啟 `http://127.0.0.1:8501`。資料保存在主機的 `record-life-data` Docker volume，重建容器沿用同一份資料；刪除 volume 或遺失主機磁碟仍會遺失資料。這個設定**不會替 Streamlit Community Cloud 加上持久磁碟**，也不會自動搬移線上的資料。遠端使用需在主機前方配置 HTTPS 與存取控制，維持單一 Streamlit process 寫入。定期備份仍有必要。

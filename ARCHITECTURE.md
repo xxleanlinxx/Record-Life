@@ -37,17 +37,17 @@ DuckDB 在 Web Worker 中執行，使用真實 SQL、交易與分層資料表。
 
 generation 比較也防止不支援 Web Locks 的瀏覽器發生遺失更新；此時一個寫入可能收到衝突，需重試。若步驟 4 因容量或版本衝突失敗，丟棄記憶體引擎，下次重開上一份 durable 快照。若步驟 3 失敗則回滾 SQL。關閉分頁發生在保存前，該操作不保證完成，UI 也不宣告完成。
 
-修改／刪除檢查旅程 revision；新增支出使用 submission UUID 防重複。購物轉記帳與關聯同步更新；作廢／修正保留歷史支出。結算將最小幣值尾差按最大餘額分配，應收／應付與轉帳建議使用同一份結果。
+裝置端修改／刪除檢查 `database epoch:trip revision`；還原建立新 epoch，避免還原後 revision 數字相同而放行舊表單。Python API 仍使用數字 revision，未提供原地還原入口。新增支出使用 submission UUID 防重複。購物轉記帳與關聯同步更新；作廢／修正保留歷史支出。結算將最小幣值尾差按最大餘額分配，應收／應付與轉帳建議使用同一份結果。
 
 瀏覽器裝置保存不是跨裝置同步。origin、瀏覽器 profile 與無痕工作階段各自獨立。持久保存請求由瀏覽器決定，不取代可攜備份。[IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API)、[儲存空間與清理規則](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)
 
 ## 匯入、分析與版本
 
-JSON 備份保留 13 張 DIM／DWD 表及 schema 格式版本 1。匯入先在另一個引擎驗證資料型別、必備欄位、外鍵、旅程範圍、金額、分攤與預訂時間，重建 DWS，再於確認時原子取代快照。確認期間原資料有變動會拒絕還原，要求重新預覽。限制為 50 MB 檔案及總計 50,000 列，避免大型檔案佔滿個人裝置記憶體。
+JSON 備份保留 13 張 DIM／DWD 表及 schema 格式版本 1。匯入先在另一個引擎驗證資料型別、必備欄位、外鍵、旅程範圍、金額、分攤與預訂時間，重建 DWS，再於確認時原子取代快照。預覽保留已驗證的二進位快照，確認時直接安裝，避免重複解析及匯入。確認期間原資料有變動會拒絕還原，要求重新預覽。限制為 50 MB 檔案及總計 50,000 列，避免大型檔案佔滿個人裝置記憶體。
 
 `.duckdb` 匯出是實際資料庫，可用原生 DuckDB 開啟；不是 JSON 改副檔名。JSON 供跨版本／跨裝置還原，DWS 不直接信任外部輸入。JSON 日期使用 ISO 字串，稽核 timestamp 輸出為毫秒精度；二進位匯出保留資料庫原精度。
 
-目前 browser schema 為 1，預設資料庫模板不含使用者資料。`empty-db.bin` 由 `scripts/generate_browser_template.py` 以 DuckDB storage v1.3 格式建立；正常開發／部署無需 Python 重建。WASM npm 版本固定為 1.32.0。升級 engine 或 schema 時，需先以複本測試舊快照、備份還原及原生工具相容性，再新增明確版本遷移，不能對既有資料重跑初始化。
+目前 browser schema 為 2，新增 `app_metadata` 保存 epoch。開啟既有 v1 快照時，先在私人引擎複本中執行版本遷移，成功保存後才啟用；拒絕較新版本。IndexedDB 升至 v2，在同一交易保存 metadata 與完整 bytes，未變動的讀取僅取 metadata；舊版 IndexedDB client 不再能寫入新版 store。JSON 可攜格式維持 v1。預設資料庫模板不含使用者資料。`empty-db.bin` 由 `scripts/generate_browser_template.py` 以 DuckDB storage v1.3 格式建立；正常開發／部署無需 Python 重建。WASM npm 版本固定為 1.32.0。升級 engine 或 schema 時，需先以複本測試舊快照、備份還原及原生工具相容性，再新增明確版本遷移，不能對既有資料重跑初始化。
 
 ## 匯率、地點與離線
 
@@ -62,8 +62,18 @@ JSON 備份保留 13 張 DIM／DWD 表及 schema 格式版本 1。匯入先在�
 
 Vercel Root Directory 選 `web`，並開啟 **Include source files outside of the Root Directory in the Build Step**，讓建置讀取共用 `sql/`。沿用 `web/vercel.json`，不設定 `VITE_API_URL`；不需要 serverless DB 寫檔。[Vercel monorepo 設定](https://vercel.com/docs/monorepos/monorepo-faq)
 
-本版本定位個人旅行資料量，尚未做大量資料或低記憶體實機壓力驗證。每次保存複製整份 DuckDB；資料量成長時，應先量測快照時間與記憶體，再評估 OPFS／增量保存，不能直接假設目前效能適合大型帳本。
+本版本定位個人旅行資料量。已加入可重跑的 100／1,000／5,000／10,000 筆 Chromium 基準，結果與限制見 [IMPLEMENTATION.md](IMPLEMENTATION.md)。尚未完成低記憶體實機壓力驗證。每次保存複製整份 DuckDB；資料量成長時，應先量測快照時間與記憶體，再評估 OPFS／增量保存，不能直接假設目前效能適合大型帳本。
 
 日後增加多裝置同步，需另設同步日誌、版本／衝突模型、授權與備份機制；不能把 IndexedDB 快照上傳當作多人合併。選用原生 API 可供可信任的共用資料庫，但仍是單一 process，未實作帳號級租戶隔離。這些都不是目前已完成的功能。
 
 已完成 Chromium 桌面與手機尺寸驗證；尚未以 Safari／Firefox 或實體手機驗收，也尚未公開部署 Vercel。
+
+## 介面與讀取範圍
+
+React 的 AppShell 管理頂端五項導覽；Settings 與六種具體型別表單各自獨立。EditorShell 保留共用的 dirty／busy／刪除／錯誤／衝突處理。輸入契約集中在 `lib/contracts.ts`，typed API 方法在 device／HTTP 兩模式共用；跨語言捨入與 DST fixture 位於 `tests/fixtures/domain.json`。
+
+首頁與頁面概要使用 `?summary=1`，僅取最近 20 筆支出及對應分攤。Budget 的 `/trips/{id}/expenses` 使用 SQL 搜尋、分類與固定每頁 50 筆；編輯時攜帶該查詢的 revision 與分攤。完整旅程 GET 保留供既有 API 使用者相容。行程、預訂與購物等非財務異動只更新 revision；財務異動才重算 DWS。
+
+首頁最近紀錄依單調遞增的 expense_id 排序；補登較早付款日期仍會出現在首頁。預算列表依付款日期排序。修改名稱／分類等非金額欄位保留入帳金額、原匯率及相同成員的分攤比例；明確改成平均分攤或改動成員才重新分配。
+
+Streamlit 同樣使用頂端 option menu、每日卡片與暖色旅遊手帳主題，仍透過既有 Python 服務寫入伺服器資料庫。它不會讀取 React 的 IndexedDB；Streamlit Community Cloud 不提供此本機檔案的持久保證。`compose.streamlit.yaml` 提供自有主機上的持久 volume 設定，並非已完成雲端遷移。
