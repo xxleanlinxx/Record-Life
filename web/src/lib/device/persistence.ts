@@ -4,23 +4,43 @@ export interface Snapshot {
   bytes: Uint8Array;
   savedAt: string;
 }
+export type SnapshotMeta = Omit<Snapshot, "bytes"> & { byteLength: number };
+function metadata(snapshot: Snapshot): SnapshotMeta {
+  return {
+    generation: snapshot.generation,
+    savedAt: snapshot.savedAt,
+    byteLength: snapshot.bytes.byteLength,
+  };
+}
 const DB_NAME = "record-life-device-v1";
 async function openStore() {
   return new Promise<IDBDatabase>((resolve, reject) => {
-    const r = indexedDB.open(DB_NAME, 1);
-    r.onupgradeneeded = () => r.result.createObjectStore("snapshots");
-    r.onsuccess = () => resolve(r.result);
+    const r = indexedDB.open(DB_NAME, 2);
+    r.onupgradeneeded = (event) => {
+      const store =
+        event.oldVersion === 0
+          ? r.result.createObjectStore("snapshots")
+          : r.transaction!.objectStore("snapshots");
+      const old = store.get("current");
+      old.onsuccess = () => {
+        if (old.result) store.put(metadata(old.result), "metadata");
+      };
+    };
+    r.onsuccess = () => {
+      r.result.onversionchange = () => r.result.close();
+      resolve(r.result);
+    };
     r.onerror = () => reject(r.error);
     r.onblocked = () => reject(new Error("請關閉其他舊版分頁後再試。"));
   });
 }
-export async function readSnapshot(): Promise<Snapshot | undefined> {
+async function read<T>(key: string): Promise<T | undefined> {
   const db = await openStore();
   try {
     return await new Promise((resolve, reject) => {
       const tx = db.transaction("snapshots", "readonly"),
-        r = tx.objectStore("snapshots").get("current");
-      tx.oncomplete = () => resolve(r.result as Snapshot | undefined);
+        r = tx.objectStore("snapshots").get(key);
+      tx.oncomplete = () => resolve(r.result as T | undefined);
       tx.onabort = () => reject(tx.error);
       tx.onerror = () => reject(tx.error);
     });
@@ -28,6 +48,8 @@ export async function readSnapshot(): Promise<Snapshot | undefined> {
     db.close();
   }
 }
+export const readSnapshot = () => read<Snapshot>("current");
+export const readMetadata = () => read<SnapshotMeta>("metadata");
 export async function saveSnapshot(
   bytes: Uint8Array,
   expected?: string,
@@ -44,16 +66,17 @@ export async function saveSnapshot(
           durability: "strict",
         }),
         store = tx.objectStore("snapshots"),
-        r = store.get("current");
+        r = store.get("metadata");
       let conflict = false;
       r.onsuccess = () => {
-        if ((r.result as Snapshot | undefined)?.generation !== expected) {
+        if ((r.result as SnapshotMeta | undefined)?.generation !== expected) {
           conflict = true;
           tx.abort();
           return;
         }
         try {
           store.put(snapshot, "current");
+          store.put(metadata(snapshot), "metadata");
         } catch {
           tx.abort();
         }

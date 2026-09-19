@@ -48,6 +48,15 @@ export class Engine {
       await statement.close();
     }
   }
+  async insertRows(sql: string, rows: Param[][]) {
+    if (!rows.length) return;
+    const statement = await this.con.prepare(sql);
+    try {
+      for (const row of rows) await statement.query(...row);
+    } finally {
+      await statement.close();
+    }
+  }
   async rows<T = Record<string, unknown>>(
     sql: string,
     params: Param[] = [],

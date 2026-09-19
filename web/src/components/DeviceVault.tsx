@@ -1,9 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Download, HardDrive, ShieldCheck, Upload } from "lucide-react";
-import { Button, Modal } from "./ui";
+import { Button, Field, Modal } from "./ui";
 import { api } from "../lib/api";
 import { errorMessage } from "../lib/domain";
-type Preview = { trips: { name: string }[]; expenses: number };
+import { MAX_BACKUP_BYTES, MAX_BACKUP_ROWS } from "../lib/backup-limits";
+import type { Trip } from "../lib/types";
+type Preview = {
+  trips: { name: string }[];
+  expenses: number;
+  bytes: Uint8Array;
+};
 export function downloadFile(
   content: BlobPart,
   name: string,
@@ -28,17 +34,25 @@ export default function DeviceVault({
   const fileRef = useRef<HTMLInputElement>(null),
     [busy, setBusy] = useState(false),
     [pending, setPending] = useState<{
-      data: unknown;
       preview: Preview;
       generation: string;
       name: string;
     } | null>(null),
     [error, setError] = useState(""),
+    [progress, setProgress] = useState(""),
+    [trips, setTrips] = useState<Trip[]>([]),
+    [exportTrip, setExportTrip] = useState(""),
     [persisted, setPersisted] = useState(false),
     [savedAt, setSavedAt] = useState(""),
     [offlineReady, setOfflineReady] = useState(false);
   useEffect(() => {
     let alive = true;
+    void api
+      .bootstrap()
+      .then((result) => {
+        if (alive) setTrips(result.trips);
+      })
+      .catch(() => {});
     import("../lib/device/store")
       .then((s) => s.storageStatus())
       .then((s) => {
@@ -56,7 +70,7 @@ export default function DeviceVault({
       alive = false;
     };
   }, []);
-  async function backup(binary = false) {
+  async function backup(binary = false, tripId = exportTrip) {
     setBusy(true);
     try {
       if (binary) {
@@ -68,13 +82,24 @@ export default function DeviceVault({
           `record-life-${new Date().toISOString().slice(0, 10)}.duckdb`,
           "application/octet-stream",
         );
-      } else
+      } else {
+        const backup = await api.backup(tripId || undefined);
+        const rows = Object.values(
+          backup.tables as Record<string, unknown[]>,
+        ).reduce((count, rows) => count + rows.length, 0);
+        const json = JSON.stringify(backup, null, 2);
+        if (rows > MAX_BACKUP_ROWS || new Blob([json]).size > MAX_BACKUP_BYTES)
+          throw new Error(
+            "這份 JSON 超過可還原範圍（50 MB／50,000 列）。請選擇單趟旅程匯出；若單趟仍超限，可先另存完整 DuckDB 檔保留資料。",
+          );
         downloadFile(
-          JSON.stringify(await api.backup(), null, 2),
-          `record-life-${new Date().toISOString().slice(0, 10)}.json`,
+          json,
+          `record-life-${tripId ? "trip-" : ""}${new Date().toISOString().slice(0, 10)}.json`,
         );
+      }
       notify("已匯出備份，請妥善保存在裝置或個人備份空間。");
     } catch (e) {
+      setError(errorMessage(e));
       notify(errorMessage(e));
     } finally {
       setBusy(false);
@@ -85,24 +110,27 @@ export default function DeviceVault({
     setBusy(true);
     setError("");
     try {
-      if (file.size > 50 * 1024 * 1024)
-        throw new Error("備份超過 50 MB，請先分批整理資料。");
+      if (file.size > MAX_BACKUP_BYTES)
+        throw new Error("備份超過 50 MB。請從原裝置選擇單趟旅程匯出後再匯入。");
       const data: unknown = JSON.parse(await file.text()),
         store = await import("../lib/device/store"),
         status = await store.storageStatus(),
-        preview = await store.backupPreview(data);
+        preview = await store.backupPreview(data, setProgress);
       setPending({
-        data,
         preview,
         generation: status.generation,
         name: file.name,
       });
-    } catch {
-      notify(
-        "無法讀取這份備份，請選擇完整的 Record Life JSON 備份；目前資料沒有變更。",
-      );
+    } catch (cause) {
+      const message =
+        cause instanceof SyntaxError
+          ? "檔案不是有效的 JSON，請重新選擇備份。"
+          : errorMessage(cause);
+      setError(`無法讀取這份備份：${message}`);
+      notify(`無法讀取這份備份：${message}`);
     } finally {
       setBusy(false);
+      setProgress("");
       if (fileRef.current) fileRef.current.value = "";
     }
   }
@@ -110,10 +138,11 @@ export default function DeviceVault({
     if (!pending) return;
     setBusy(true);
     setError("");
+    setProgress("正在保存已驗證的備份…");
     try {
       await (
         await import("../lib/device/store")
-      ).restoreBackup(pending.data, pending.generation);
+      ).restorePreview(pending.preview.bytes, pending.generation);
       await reload();
       setPending(null);
       setSavedAt(new Date().toISOString());
@@ -122,6 +151,7 @@ export default function DeviceVault({
       setError(errorMessage(e));
     } finally {
       setBusy(false);
+      setProgress("");
     }
   }
   async function persist() {
@@ -160,6 +190,31 @@ export default function DeviceVault({
               : ""}
           </small>
         </>
+      )}
+      {!pending && error && (
+        <p role="alert" className="error-banner">
+          {error}
+        </p>
+      )}
+      {progress && (
+        <p role="status" aria-live="polite">
+          {progress}
+        </p>
+      )}
+      {!compact && trips.length > 1 && (
+        <Field label="備份範圍">
+          <select
+            value={exportTrip}
+            onChange={(event) => setExportTrip(event.target.value)}
+          >
+            <option value="">所有旅程</option>
+            {trips.map((trip) => (
+              <option key={trip.trip_id} value={trip.trip_id}>
+                {trip.name}
+              </option>
+            ))}
+          </select>
+        </Field>
       )}
       <div className="actions">
         {!compact && (
@@ -205,7 +260,9 @@ export default function DeviceVault({
             </Button>
           </div>
           <small className="muted">
-            JSON 可直接在此還原，也支援舊版匯出。DuckDB 檔供資料分析工具使用。
+            JSON 可在此還原，上限為 50 MB／50,000
+            列（包含分攤與歷史紀錄）。可選擇單趟旅程備份。DuckDB
+            檔完整保留全部資料，供分析工具使用。
           </small>
         </>
       )}
@@ -237,7 +294,7 @@ export default function DeviceVault({
             <Button
               variant="secondary"
               disabled={busy}
-              onClick={() => backup()}
+              onClick={() => backup(false, "")}
             >
               先匯出目前資料
             </Button>

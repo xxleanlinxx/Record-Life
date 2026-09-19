@@ -4,6 +4,8 @@ import dws from "../../../../sql/20_dws.sql?raw";
 import migration from "../../../../sql/40_v1.sql?raw";
 import seedSQL from "../../../../sql/30_seed.sql?raw";
 import { Engine } from "./engine";
+import { ApiError } from "../errors";
+export const SCHEMA_VERSION = 2;
 export const tables = [
   "dim_currency",
   "dim_category",
@@ -24,6 +26,43 @@ export async function initialize(e: Engine) {
     `${dim}\n${dwd}\n${migration}\ncreate table schema_version(version integer primary key);insert into schema_version values (1);\ncreate table app_trip_revision(trip_id varchar primary key, revision bigint not null);`,
   );
   await views(e);
+  await migrate(e);
+}
+/** Upgrade only the private in-memory copy; store persists it by generation CAS. */
+export async function migrate(e: Engine): Promise<boolean> {
+  const [{ schema_no: version }] = await e.rows<{ schema_no: number }>(
+    "select max(version) as schema_no from schema_version",
+  );
+  if (!Number.isInteger(version) || version < 1 || version > SCHEMA_VERSION)
+    throw new ApiError(
+      "這份資料庫需要其他版本的 Record Life，請更新應用程式後再開啟。",
+      400,
+      "schema_version",
+    );
+  if (version === SCHEMA_VERSION) return false;
+  await e.exec("BEGIN");
+  try {
+    if (version < 2) {
+      await e.exec(
+        "create table app_metadata(key varchar primary key,value varchar not null)",
+      );
+      await e.exec("insert into app_metadata values ('epoch',?)", [
+        crypto.randomUUID(),
+      ]);
+      await e.exec("insert into schema_version values (2)");
+    }
+    await e.exec("COMMIT");
+    return true;
+  } catch (error) {
+    await e.exec("ROLLBACK");
+    throw error;
+  }
+}
+export async function touch(e: Engine, tid: string) {
+  await e.exec(
+    "insert into app_trip_revision values (?,1) on conflict(trip_id) do update set revision=app_trip_revision.revision+1",
+    [tid],
+  );
 }
 export async function views(e: Engine) {
   await e.exec(
@@ -44,10 +83,7 @@ export async function refresh(e: Engine, tid: string) {
       `insert or replace into ${table} select * from v_${table} where trip_id=?`,
       [tid],
     );
-  await e.exec(
-    "insert into app_trip_revision values (?,1) on conflict(trip_id) do update set revision=app_trip_revision.revision+1",
-    [tid],
-  );
+  await touch(e, tid);
 }
 export async function seed(e: Engine) {
   await e.exec(seedSQL);

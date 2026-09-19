@@ -2,6 +2,7 @@ import { z } from "zod";
 import { Engine, type Param } from "./engine";
 import { initialize, refresh, tables } from "./schema";
 import { ApiError } from "../errors";
+import type { Activity, Booking, Trip } from "../types";
 import { daysBetween } from "../domain";
 import * as contracts from "./contracts";
 import { utcTime } from "./services";
@@ -16,10 +17,31 @@ const envelope = z.object({
   version: z.literal(1),
   tables: z.record(z.string(), z.array(z.record(z.string(), cell))),
 });
-export async function exportJSON(e: Engine) {
+import { MAX_BACKUP_ROWS } from "../backup-limits";
+export type BackupProgress = (message: string) => void;
+export async function exportJSON(e: Engine, tid?: string) {
   const data: Record<string, unknown> = {};
-  for (const table of tables)
-    data[table] = await e.rows(`select * from ${table}`);
+  for (const table of tables) {
+    let where = "";
+    if (
+      tid &&
+      !["dim_currency", "dim_category", "dim_fx_rate"].includes(table)
+    ) {
+      if (table === "dim_place")
+        where =
+          " where place_id in (select place_id from dwd_itinerary_item where trip_id=? union select place_id from dwd_booking where trip_id=? union select place_id from dwd_expense where trip_id=?)";
+      else if (table === "dwd_expense_split")
+        where =
+          " where expense_id in (select expense_id from dwd_expense where trip_id=?)";
+      else where = " where trip_id=?";
+    }
+    data[table] = await e.rows(
+      `select * from ${table}${where}`,
+      where
+        ? Array.from({ length: table === "dim_place" ? 3 : 1 }, () => tid!)
+        : [],
+    );
+  }
   return {
     format: "record-life",
     version: 1,
@@ -27,15 +49,27 @@ export async function exportJSON(e: Engine) {
     tables: data,
   };
 }
-export async function importJSON(data: unknown): Promise<Engine> {
-  const backup = envelope.parse(data);
+export async function importJSON(
+  data: unknown,
+  progress: BackupProgress = () => {},
+): Promise<Engine> {
+  progress("正在驗證備份格式…");
+  const parsed = envelope.safeParse(data);
+  if (!parsed.success)
+    throw new ApiError(
+      "備份格式或版本不相容，請選擇由 Record Life 匯出的 JSON 備份。",
+      400,
+      "invalid_backup",
+    );
+  const backup = parsed.data;
   if (
     Object.keys(backup.tables).length !== tables.length ||
     tables.some((t) => !Array.isArray(backup.tables[t]))
   )
     throw new ApiError("備份缺少必要的資料表，尚未變更目前資料。", 400);
   if (
-    Object.values(backup.tables).reduce((n, rows) => n + rows.length, 0) > 50000
+    Object.values(backup.tables).reduce((n, rows) => n + rows.length, 0) >
+    MAX_BACKUP_ROWS
   )
     throw new ApiError("備份超過此個人版本的 50,000 筆匯入限制。", 400);
   const e = await Engine.open();
@@ -50,6 +84,7 @@ export async function importJSON(data: unknown): Promise<Engine> {
       const names = columns
         .map((c) => c.column_name)
         .filter((c) => !(table === "dim_trip" && c === "n_days"));
+      const records: Param[][] = [];
       for (const row of backup.tables[table]) {
         if (
           Object.keys(row).some(
@@ -62,12 +97,17 @@ export async function importJSON(data: unknown): Promise<Engine> {
         // Require all fields in the exported schema; do not silently rebuild missing history.
         if (names.some((key) => !(key in row)))
           throw new Error("備份欄位不完整，請從原版本重新匯出。");
-        await e.exec(
-          `insert ${table === "dim_currency" || table === "dim_category" ? "or replace " : ""}into ${table}(${names.join(",")}) values (${names.map(() => "?").join(",")})`,
-          names.map((k) => row[k] as Param),
-        );
+        records.push(names.map((k) => row[k] as Param));
       }
+      progress(
+        `正在載入資料（${tables.indexOf(table) + 1}/${tables.length}）…`,
+      );
+      // Bounded batches reuse the prepared statement and keep UI progress responsive.
+      const sql = `insert ${table === "dim_currency" || table === "dim_category" ? "or replace " : ""}into ${table}(${names.join(",")}) values (${names.map(() => "?").join(",")})`;
+      for (let offset = 0; offset < records.length; offset += 500)
+        await e.insertRows(sql, records.slice(offset, offset + 500));
     }
+    progress("正在驗證關聯並重建摘要…");
     await validate(e);
     for (const { trip_id } of await e.rows<{ trip_id: string }>(
       "select trip_id from dim_trip",
@@ -103,9 +143,7 @@ async function validate(e: Engine) {
         400,
       );
   // Match the public contracts for non-financial event fields too.
-  for (const row of await e.rows<Record<string, any>>(
-    "select * from dwd_itinerary_item",
-  ))
+  for (const row of await e.rows<Activity>("select * from dwd_itinerary_item"))
     contracts.activity.parse({
       day: row.day_no,
       time: row.start_time,
@@ -115,9 +153,7 @@ async function validate(e: Engine) {
       currency: row.planned_ccy,
       notes: row.notes ?? "",
     });
-  for (const row of await e.rows<Record<string, any>>(
-    "select * from dwd_booking",
-  )) {
+  for (const row of await e.rows<Booking>("select * from dwd_booking")) {
     const b = contracts.booking.parse({
       kind: row.kind,
       title: row.title,
@@ -132,7 +168,7 @@ async function validate(e: Engine) {
     if (utcTime(b.end, b.end_zone) < utcTime(b.start, b.start_zone))
       throw new Error("備份的預訂起訖時間不正確。");
   }
-  for (const row of await e.rows<Record<string, any>>("select * from dim_trip"))
+  for (const row of await e.rows<Trip>("select * from dim_trip"))
     if (daysBetween(row.start_date, row.end_date) > 365)
       throw new Error("備份旅程日期無效。");
 }
