@@ -39,7 +39,7 @@ test("完整旅程：建立、景點、地圖、預訂、購物轉記帳、修�
   await createTrip(page, "京都秋日 E2E");
   await page
     .getByRole("navigation", { name: "主要導覽", exact: true })
-    .getByRole("link", { name: "行程", exact: true })
+    .getByRole("link", { name: "Plan", exact: true })
     .click();
   await page.getByRole("button", { name: "新增行程", exact: true }).click();
   await page.getByLabel("行程名稱", { exact: true }).fill("清水寺散步");
@@ -69,7 +69,7 @@ test("完整旅程：建立、景點、地圖、預訂、購物轉記帳、修�
   await expect(page.getByText("已記帳", { exact: true })).toBeVisible();
   await page
     .getByRole("navigation", { name: "主要導覽", exact: true })
-    .getByRole("link", { name: "預算", exact: true })
+    .getByRole("link", { name: "Budget", exact: true })
     .click();
   await expect(page.getByText("共 1 筆支出")).toBeVisible();
   await page.getByRole("button", { name: /宇治抹茶/ }).click();
@@ -82,7 +82,7 @@ test("完整旅程：建立、景點、地圖、預訂、購物轉記帳、修�
   );
   await page
     .getByRole("navigation", { name: "主要導覽", exact: true })
-    .getByRole("link", { name: "預訂", exact: true })
+    .getByRole("link", { name: "Bookings", exact: true })
     .click();
   await page.getByRole("button", { name: "新增預訂", exact: true }).click();
   await page.getByLabel("預訂名稱", { exact: true }).fill("台北飛洛杉磯");
@@ -102,7 +102,7 @@ test("完整旅程：建立、景點、地圖、預訂、購物轉記帳、修�
   });
   await page
     .getByRole("navigation", { name: "主要導覽", exact: true })
-    .getByRole("link", { name: "預算", exact: true })
+    .getByRole("link", { name: "Budget", exact: true })
     .click();
   await page.getByRole("button", { name: /宇治抹茶/ }).click();
   await page.getByRole("button", { name: "刪除紀錄", exact: true }).click();
@@ -118,8 +118,8 @@ test("手機：表單錯誤保留、捨棄提醒、窄螢幕、鍵盤焦點與�
   await page.setViewportSize({ width: 390, height: 844 });
   await createTrip(page, "手機旅行 E2E");
   await page
-    .getByRole("navigation", { name: "手機導覽", exact: true })
-    .getByRole("button", { name: "記帳", exact: true })
+    .getByRole("navigation", { name: "主要導覽", exact: true })
+    .getByRole("button", { name: "+ Record", exact: true })
     .click();
   await page.getByLabel("支出金額", { exact: true }).fill("900");
   await page.getByLabel("花費名稱", { exact: true }).fill("咖啡與早餐");
@@ -148,6 +148,11 @@ test("手機：表單錯誤保留、捨棄提醒、窄螢幕、鍵盤焦點與�
     "咖啡與早餐",
   );
   await page.unroute("**/api/trips/*/expenses");
+  await page.route("**/api/trips/*/expenses", route => route.fulfill({status:502,contentType:"text/html",body:"<h1>Proxy unavailable</h1>"}));
+  await page.getByRole("button", {name:"儲存紀錄",exact:true}).click();
+  await expect(page.getByRole("alert")).toContainText("伺服器暫時無法處理");
+  await expect(page.getByLabel("花費名稱",{exact:true})).toHaveValue("咖啡與早餐");
+  await page.unroute("**/api/trips/*/expenses");
   await save(page);
   await noOverflow(page);
   await page.screenshot({
@@ -166,7 +171,7 @@ test("手機：表單錯誤保留、捨棄提醒、窄螢幕、鍵盤焦點與�
       })),
     })),
   ).toEqual([]);
-  for (const width of [320, 768, 1440]) {
+  for (const width of [320, 360, 390, 430, 768, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     for (const path of ["/", "/plan", "/bookings", "/budget", "/settings"]) {
       await page.goto(path);
@@ -229,7 +234,7 @@ test("設定、匯出與跨頁修改衝突：舊表單不能覆蓋新資料", as
   const download = await downloadPromise;
   expect(download.suggestedFilename()).toMatch(/^record-life-.*\.json$/);
   expect(await download.failure()).toBeNull();
-  await page.getByRole("button", { name: "記一筆花費", exact: true }).click();
+  await page.getByRole("button", { name: "+ Record", exact: true }).click();
   await page.getByLabel("支出金額", { exact: true }).fill("1500");
   await page.getByLabel("花費名稱", { exact: true }).fill("保留原始午餐");
   await save(page);

@@ -17,3 +17,5 @@ playwright-report/
 .env.local
 
 playwright-report-device/
+
+test-results-streamlit/
