@@ -1,0 +1,14 @@
+services:
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      RECORD_LIFE_DB: /data/record_life.duckdb
+    volumes:
+      - record-life-data:/data
+    restart: unless-stopped
+volumes:
+  record-life-data:

@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements-core.txt requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+COPY core ./core
+COPY sql ./sql
+COPY screens ./screens
+COPY app.py ./
+COPY .streamlit/config.toml ./.streamlit/config.toml
+RUN useradd --create-home app && mkdir /data && chown app:app /data
+USER app
+ENV RECORD_LIFE_DB=/data/record_life.duckdb
+VOLUME /data
+EXPOSE 8501
+CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
