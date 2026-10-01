@@ -8,12 +8,12 @@
   align-items: center;
   gap: 14px;
   border-radius: 12px;
-  background: #243f39;
+  background: var(--ink);
   color: white;
   padding: 13px 17px;
   max-width: calc(100vw - 32px);
-  font-size: 13px;
-  box-shadow: 0 6px 30px #16342833;
+  font-size: var(--text-small);
+  box-shadow: 0 4px 16px #29272318;
 }
 .toast.visible {
   display: flex;
@@ -31,8 +31,8 @@
   padding: 0;
   width: min(620px, calc(100% - 32px));
   max-height: calc(var(--viewport-height, 100dvh) - 24px);
-  color: #2d1a0e;
-  box-shadow: 0 20px 100px #152c4c30;
+  color: var(--ink);
+  box-shadow: 0 16px 64px #29272324;
   overflow: hidden;
   background: #fff;
 }
@@ -41,7 +41,7 @@
   flex-direction: column;
 }
 .sheet::backdrop {
-  background: #172c2866;
+  background: #29272366;
   backdrop-filter: blur(3px);
 }
 .sheet-heading {
@@ -50,13 +50,13 @@
   justify-content: space-between;
   gap: 16px;
   padding: 25px 28px 20px;
-  border-bottom: 1px solid #e8ece3;
+  border-bottom: 1px solid var(--line);
 }
 .sheet-heading h2 {
   font-size: 21px;
 }
 .sheet-heading p {
-  font-size: 11px;
+  font-size: var(--text-small);
   color: var(--muted);
   margin-top: 7px;
 }
@@ -78,9 +78,9 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  border-top: 1px solid #e8ece3;
+  border-top: 1px solid var(--line);
   padding: 17px 28px;
-  background: #fafbf8;
+  background: var(--surface-soft);
   flex-shrink: 0;
 }
 .sheet-footer .delete-button {
@@ -94,11 +94,11 @@
   min-width: 0;
 }
 .field > span {
-  font-size: 12px;
+  font-size: var(--text-small);
   font-weight: 600;
 }
 .field > small {
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--muted);
 }
 .form-grid {
@@ -120,23 +120,23 @@
   font-weight: 600;
   padding: 8px 0;
   border: 0;
-  border-bottom: 2px solid #d2dec9;
+  border-bottom: 2px solid var(--control-line);
   border-radius: 0;
   height: 66px;
   letter-spacing: -1px;
 }
 .amount-entry select {
-  background: #f2f5ee;
-  font-size: 13px;
+  background: var(--surface-soft);
+  font-size: var(--text-small);
 }
 .conversion-preview {
   padding: 13px 0 21px;
-  color: #5e765b;
-  font-size: 13px;
+  color: var(--accent);
+  font-size: var(--text-small);
 }
 .conversion-preview small {
   display: block;
-  font-size: 10px;
+  font-size: var(--text-small);
   margin-top: 5px;
   color: var(--muted);
 }
@@ -144,7 +144,7 @@
   margin: 12px 0 24px;
 }
 .choice-field legend small {
-  font-size: 10px;
+  font-size: var(--text-small);
   color: var(--muted);
   font-weight: 400;
   margin-left: 7px;
@@ -156,9 +156,9 @@
 }
 .category-choices button {
   min-height: 44px;
-  border: 1px solid #d9e2d3;
+  border: 1px solid var(--control-line);
   border-radius: 8px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .category-choices button[aria-pressed="true"] {
   background: var(--accent);
@@ -175,11 +175,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid #dbe3d4;
+  border: 1px solid var(--control-line);
   padding: 10px 13px;
   min-height: 44px;
   border-radius: 9px;
-  font-size: 12px;
+  font-size: var(--text-small);
 }
 .choice-field:has(.member-choices) {
   margin-top: 25px;
@@ -188,9 +188,9 @@
 .info-banner {
   border-radius: 9px;
   padding: 14px;
-  background: #f0f5e9;
-  color: #58734e;
-  font-size: 11px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: var(--text-small);
   margin-top: 22px;
   line-height: 1.8;
 }
@@ -200,7 +200,7 @@
   border-radius: 10px;
   padding: 14px;
   color: #963c25;
-  font-size: 13px;
+  font-size: var(--text-small);
   margin-bottom: 18px;
   line-height: 1.8;
 }
@@ -215,7 +215,7 @@
 }
 .advanced summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--text-small);
   color: var(--muted);
   padding: 10px 0;
   min-height: 44px;
@@ -226,14 +226,14 @@
 }
 .discard {
   padding: 28px;
-  font-size: 13px;
+  font-size: var(--text-small);
 }
 .discard .actions {
   justify-content: flex-end;
   margin-top: 24px;
 }
 .delete-confirm p {
-  font-size: 13px;
+  font-size: var(--text-small);
   margin: 16px 0 24px;
   color: var(--muted);
 }

@@ -19,8 +19,8 @@ export default function TripDays({ data }: { data: Bundle }) {
   }
   return (
     <Section
-      title="每一天，都值得期待"
-      meta={`${data.trip.n_days} 天的旅行提案`}
+      title="每日行程"
+      meta={`${data.trip.n_days} 天 · ${data.itinerary.length} 個停留點`}
     >
       <div className="trip-days">
         {days.map((day) => {
@@ -41,7 +41,7 @@ export default function TripDays({ data }: { data: Bundle }) {
               </div>
               <div className="trip-day-copy">
                 <strong>
-                  {items[0]?.place || items[0]?.title || "留一點空白給驚喜"}
+                  {items[0]?.place || items[0]?.title || "尚未安排行程"}
                 </strong>
                 <p>
                   {items.length
@@ -49,7 +49,7 @@ export default function TripDays({ data }: { data: Bundle }) {
                         .slice(0, 3)
                         .map((item) => item.title)
                         .join(" · ")
-                    : "景點、美食與沿途的風景，慢慢安排。"}
+                    : "點選日期，新增景點或活動。"}
                 </p>
                 <span>
                   {items.length} 個停留點 <ArrowUpRight size={16} />

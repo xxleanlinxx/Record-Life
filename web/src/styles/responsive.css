@@ -17,14 +17,6 @@
     gap: 20px;
     grid-template-columns: minmax(0, 1.4fr) minmax(230px, 1fr);
   }
-  .hero-stamp {
-    margin-right: 10px;
-    width: 120px;
-    height: 120px;
-  }
-  .journey-hero h1 {
-    font-size: 35px;
-  }
   .budget-card {
     padding: 22px;
   }
@@ -60,7 +52,7 @@
     padding: 16px 24px;
     flex-wrap: wrap;
     gap: 6px 12px;
-    background: #faf7f0;
+    background: var(--paper);
   }
   .mobile-brand {
     display: flex;
@@ -78,7 +70,7 @@
     max-width: 100%;
   }
   .trip-switch select {
-    font-size: 12px;
+    font-size: var(--text-small);
     min-height: 36px;
     padding: 5px 0;
   }
@@ -87,7 +79,7 @@
     gap: 2px;
   }
   .local-status {
-    font-size: 10px;
+    font-size: var(--text-small);
     margin-right: 10px;
   }
   .topbar-actions .icon-button {
@@ -113,8 +105,7 @@
 }
 @media (max-width: 620px) {
   h1 {
-    font-size: 25px;
-    letter-spacing: -0.7px;
+    font-size: var(--text-title);
   }
   h2 {
     font-size: 16px;
@@ -137,7 +128,6 @@
     gap: 12px;
   }
   .journey-hero h1 {
-    font-size: 31px;
     line-height: 1.4;
     margin: 10px 0 12px;
     overflow-wrap: anywhere;
@@ -146,7 +136,7 @@
     min-width: 0;
   }
   .journey-hero p {
-    font-size: 13px;
+    font-size: var(--text-small);
     gap: 5px;
     flex-wrap: wrap;
   }
@@ -156,36 +146,20 @@
   .journey-hero .dot-separator {
     padding: 0;
   }
-  .hero-stamp {
-    width: 76px;
-    height: 76px;
-    min-width: 76px;
-    margin: 22px 6px 0 0;
-    gap: 5px;
-    outline-offset: 3px;
-  }
-  .hero-stamp svg {
-    width: 25px;
-    height: 25px;
-  }
-  .hero-stamp span {
-    font-size: 5px;
-    letter-spacing: 0.6px;
-  }
   .hero-members {
     margin-top: 16px;
     gap: 8px;
   }
   .hero-members > span {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .avatar-stack .avatar {
     width: 30px;
     height: 30px;
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .eyebrow {
-    font-size: 8px;
+    font-size: var(--text-small);
     letter-spacing: 1.2px;
   }
   .overview-grid {
@@ -218,7 +192,7 @@
     margin-bottom: 12px;
   }
   .section-heading p {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .timeline-preview {
     padding: 10px 16px;
@@ -228,13 +202,13 @@
     min-height: 82px;
   }
   .preview-stop strong {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .preview-stop p {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .preview-stop time {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .preview-stop .icon-button {
     min-width: 44px;
@@ -252,16 +226,13 @@
     font-size: 15px;
   }
   .row-copy small {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .row-amount strong {
     font-size: 15px;
   }
   .row-amount small {
-    font-size: 13px;
-  }
-  .note-card {
-    padding: 22px;
+    font-size: var(--text-small);
   }
   .page-title {
     align-items: flex-start;
@@ -310,7 +281,7 @@
     gap: 8px;
   }
   .timeline-item > time {
-    font-size: 13px;
+    font-size: var(--text-small);
     padding-top: 29px;
   }
   .timeline-node:before {
@@ -334,25 +305,25 @@
     margin: 10px 0 6px;
   }
   .activity-notes {
-    font-size: 14px;
+    font-size: var(--text-body);
   }
   .activity-footer {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .place-link {
-    font-size: 14px;
+    font-size: var(--text-body);
     flex-wrap: wrap;
     gap: 4px;
   }
   .route-link {
-    font-size: 13px;
+    font-size: var(--text-small);
     gap: 5px;
     padding-bottom: 15px;
   }
   .add-dashed {
     width: calc(100% - 62px);
     margin-left: 62px;
-    font-size: 14px;
+    font-size: var(--text-body);
   }
   .shopping-row {
     padding: 15px 12px;
@@ -371,11 +342,11 @@
     min-width: 44px;
   }
   .mini-button {
-    font-size: 14px;
+    font-size: var(--text-body);
     padding: 8px 10px;
   }
   .shopping-row .row-copy small {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .filter-tabs {
     gap: 0;
@@ -401,7 +372,7 @@
   }
   .subtle-note {
     align-items: flex-start;
-    font-size: 13px;
+    font-size: var(--text-small);
     line-height: 1.8;
   }
   .budget-summary {
@@ -445,7 +416,7 @@
     padding: 20px;
   }
   .category-budget p {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .entry-toolbar {
     gap: 8px;
@@ -476,14 +447,14 @@
     font-size: 24px;
   }
   .onboarding p {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .page-footer {
     padding: 10px 18px 24px;
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .page-footer span {
-    font-size: 8px;
+    font-size: var(--text-small);
     letter-spacing: 1px;
   }
   .sheet {
@@ -496,7 +467,7 @@
   .sheet-handle {
     width: 36px;
     height: 4px;
-    background: #d1d8cc;
+    background: var(--control-line);
     border-radius: 4px;
     margin: 10px auto 0;
   }
@@ -508,7 +479,7 @@
     font-size: 19px;
   }
   .sheet-heading p {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .sheet form {
     min-height: 0;
@@ -530,10 +501,10 @@
     gap: 18px 12px;
   }
   .field > span {
-    font-size: 14px;
+    font-size: var(--text-body);
   }
   .field > small {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .amount-entry {
     grid-template-columns: minmax(0, 1fr) 122px;
@@ -554,7 +525,7 @@
     font-size: 15px;
   }
   .conversion-preview small {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .member-choices label {
     font-size: 15px;
@@ -586,12 +557,6 @@
   .topbar {
     padding-left: 14px;
     padding-right: 14px;
-  }
-  .hero-stamp {
-    display: none;
-  }
-  .journey-hero h1 {
-    font-size: 30px;
   }
   .amount-entry {
     grid-template-columns: minmax(0, 1fr) 115px;

@@ -34,8 +34,7 @@ export default function Bookings({
     <>
       <div className="page-title">
         <div>
-          <span className="eyebrow">ALL THE DETAILS, ONE PLACE</span>
-          <h1>出發前，安心一點。</h1>
+          <h1>預訂紀錄</h1>
           <p>航班、住宿與餐廳訂位，隨時找得到。</p>
         </div>
         <Button onClick={() => edit({ kind: "booking" })}>

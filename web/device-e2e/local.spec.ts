@@ -757,7 +757,7 @@ test("大量資料基準（手動執行）", async ({ page, context }) => {
     const coldStart = performance.now();
     await page.reload();
     await expect(
-      page.getByRole("heading", { name: "你的旅程，你的步調。", exact: true }),
+      page.getByRole("heading", { name: "旅程設定", exact: true }),
     ).toBeVisible();
     const coldMs = performance.now() - coldStart;
     const saves: number[] = [];
@@ -883,8 +883,28 @@ test("旅遊指引卡片、時間軸及長預訂內容在手機可閱讀", async
     page.getByRole("heading", { name: "Kyoto & Osaka", exact: true }),
   ).toBeVisible();
   await page.getByRole("button", { name: "關閉通知", exact: true }).click();
+  for (const width of [320, 360, 390, 430, 1440]) {
+    await page.setViewportSize({ width, height: 844 });
+    await expect(
+      page.getByRole("button", { name: "編輯旅程", exact: true }),
+    ).toBeInViewport();
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width);
+  }
+  const fonts = await page
+    .locator("h1, .trip-day-heading > span, .journey-actions button")
+    .evaluateAll((elements) =>
+      elements.map((element) => getComputedStyle(element).fontFamily),
+    );
+  expect(new Set(fonts).size).toBe(1);
   await page.screenshot({
-    path: "../artifacts/journal-react-home.png",
+    path: "../artifacts/minimal-react-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "../artifacts/minimal-react-home.png",
     fullPage: true,
   });
   await page.locator(".trip-day").nth(1).click();
@@ -899,7 +919,7 @@ test("旅遊指引卡片、時間軸及長預訂內容在手機可閱讀", async
     count,
   );
   await page.screenshot({
-    path: "../artifacts/journal-react-day.png",
+    path: "../artifacts/minimal-react-day.png",
     fullPage: true,
   });
   await page.getByRole("link", { name: "Bookings", exact: true }).click();

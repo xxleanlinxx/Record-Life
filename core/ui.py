@@ -27,10 +27,9 @@ def row(left: str, title: str, sub: str, right: str) -> str:
             f'<div class="sub">{sub}</div></div><div class="amt">{right}</div></div>')
 
 def header(kicker: str, title: str, meta: str = ""):
-    st.markdown(f'<div class="tr-header"><div class="tr-journal">Travel Journal</div>'
+    st.markdown(f'<div class="tr-header">'
                 f'<div class="tr-kicker">{escape(str(kicker))}</div><h2>{escape(str(title))}</h2>'
-                f'<div class="tr-mute">{escape(str(meta))}</div>'
-                '<svg class="tr-wave" viewBox="0 0 180 20" aria-hidden="true"><path d="M2 10 Q24 0 46 10 T90 10 T134 10 T178 10" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>',
+                f'<div class="tr-mute">{escape(str(meta))}</div></div>',
                 unsafe_allow_html=True)
 
 def day_header(day: int, title: str, meta: str):
@@ -40,14 +39,14 @@ def day_header(day: int, title: str, meta: str):
 
 def trip_days(trip, items):
     """Show a bounded preview; every card opens the real, editable day."""
-    st.subheader("Every day, a new chapter")
+    st.subheader("Daily itinerary")
     with st.container(key="trip_days_preview"):
         for offset in range(0, min(int(trip.n_days), 6), 2):
             for day, col in zip(range(offset + 1, min(offset + 3, int(trip.n_days) + 1)), st.columns(2)):
                 part = items[items.day_no == day]
                 date = trip.start_date + dt.timedelta(days=day - 1)
-                title = text(part.iloc[0].place) or text(part.iloc[0].title) if not part.empty else "Room for discovery"
-                stops = " · ".join(part.title.head(3)) if not part.empty else "Add your favourite places and little detours."
+                title = text(part.iloc[0].place) or text(part.iloc[0].title) if not part.empty else "No activities yet"
+                stops = " · ".join(part.title.head(3)) if not part.empty else "Open this day to add activities."
                 with col:
                     st.markdown(f'<article class="tr-day-card" style="--day-color:{day_color(day)}"><header>'
                                 f'<strong>Day {day:02d}</strong><span>{date:%b %d · %a}</span></header><section>'
@@ -77,13 +76,14 @@ def option_menu(active: str):
         default_index=index, orientation="horizontal", key=f"top_menu_{active}",
         on_change=select_page,
         styles={
-            "container": {"padding": "4px!important", "background-color": "#faf7f0"},
+            "container": {"padding": "4px!important", "background-color": "#faf9f6"},
             "nav": {"flex-wrap": "nowrap", "gap": "2px"},
             "nav-item": {"flex": "1 1 0", "min-width": "0"},
             "nav-link": {"font-size": "13px", "padding": "8px 0", "margin": "0",
+                         "font-family": "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans TC', sans-serif",
                          "min-height": "60px", "display": "flex", "flex-direction": "column",
                          "align-items": "center", "justify-content": "center", "white-space": "nowrap",
-                         "border-radius": "6px", "color": "#765a43"},
+                         "border-radius": "6px", "color": "#6f6a63"},
             "icon": {"font-size": "18px", "margin-right": "0"},
             "nav-link-selected": {"background-color": "#b54b28", "color": "#fff"},
         },

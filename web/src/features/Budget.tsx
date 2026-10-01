@@ -66,8 +66,7 @@ export default function Budget({
     <>
       <div className="page-title">
         <div>
-          <span className="eyebrow">SPEND WELL, TRAVEL FREELY</span>
-          <h1>旅費清楚，玩得自在。</h1>
+          <h1>旅費與預算</h1>
         </div>
         <Button onClick={() => edit({ kind: "expense" })}>
           <Plus size={18} />

@@ -9,7 +9,7 @@ import {
   cloneElement,
   type ReactNode,
 } from "react";
-import { X, ArrowRight, Compass, LoaderCircle } from "lucide-react";
+import { X, ArrowRight, LoaderCircle } from "lucide-react";
 
 export function Button({
   children,
@@ -44,9 +44,6 @@ export function Empty({
 }) {
   return (
     <div className="empty">
-      <div className="empty-icon">
-        <Compass size={28} />
-      </div>
       <h3>{title}</h3>
       <p>{children}</p>
       {action}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Compass, Plus, RefreshCw, X } from "lucide-react";
+import { Plus, RefreshCw, X } from "lucide-react";
 import { api, ApiError, DEVICE_MODE } from "./lib/api";
 import { errorMessage } from "./lib/domain";
 import type { Editor as EditorType, Shopping } from "./lib/types";
@@ -167,8 +167,6 @@ export default function App() {
               </div>
             ) : !selected ? (
               <div className="card onboarding">
-                <span className="eyebrow">YOUR NEXT CHAPTER</span>
-                <Compass size={56} strokeWidth={1} />
                 <h1>建立你的第一趟旅程</h1>
                 <p>目前還沒有旅程。建立後就能安排行程、管理預訂與記帳。</p>
                 <Button
@@ -232,7 +230,7 @@ export default function App() {
             ) : null}
           </main>
           <footer className="page-footer">
-            記下每一站，也記得享受當下。<span>RECORD LIFE</span>
+            <span>Record Life</span>
           </footer>
         </AppShell>
         <div

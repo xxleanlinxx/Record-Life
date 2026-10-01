@@ -62,8 +62,7 @@ export default function Plan({
     >
       <div className="page-title">
         <div>
-          <span className="eyebrow">A LITTLE PLAN, A LOT OF POSSIBILITY</span>
-          <h1>把期待，排進每一天。</h1>
+          <h1>每日行程</h1>
         </div>
         <Button
           onClick={() =>

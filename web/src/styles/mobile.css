@@ -11,13 +11,13 @@
   grid-column: 2;
   grid-row: 1 / span 2;
 }
-.overview-notes {
-  grid-column: 2;
+.overview-budget > .section {
+  margin-bottom: 0;
 }
 .overview-grid > * {
   min-width: 0;
 }
-.field-error {
+.field > .field-error {
   color: #963c25;
 }
 [aria-invalid="true"] {
@@ -84,9 +84,6 @@
   .during-trip .daily-allowance {
     display: none;
   }
-  .overview-notes .note-card {
-    display: none;
-  }
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -98,11 +95,11 @@
   }
   .sheet-heading p,
   .field > small {
-    font-size: 13px;
+    font-size: var(--text-small);
   }
   .field > span,
   .choice-field legend {
-    font-size: 14px;
+    font-size: var(--text-body);
   }
   .trip-switch select,
   .entry-toolbar > select {
@@ -132,12 +129,6 @@
   .page-title {
     gap: 12px;
     margin-bottom: 18px;
-  }
-  .hero-stamp {
-    display: none;
-  }
-  .journey-hero h1 {
-    font-size: 28px;
   }
   .hero-members {
     margin-top: 8px;

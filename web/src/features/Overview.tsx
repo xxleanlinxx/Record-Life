@@ -1,5 +1,5 @@
 import TripDays from "../components/TripDays";
-import { ArrowUpRight, CalendarDays, Plus, MapPin, Wallet } from "lucide-react";
+import { ArrowUpRight, CalendarDays, Plus, Wallet } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { Bundle, OpenEditor } from "../lib/types";
 import { money, phase, shortDate, mapUrl, categories } from "../lib/domain";
@@ -164,15 +164,6 @@ export default function Overview({
   );
   const notes = (
     <>
-      <div className="note-card">
-        <MapPin size={22} />
-        <h3>計畫之外，也值得記下。</h3>
-        <p>
-          多留一點時間給巷口的咖啡店，
-          <br />
-          或是剛好遇見的風景。
-        </p>
-      </div>
       <div className="fx-note">
         <span className={`status-dot ${data.fx.date ? "" : "muted-dot"}`} />
         {data.fx.date ? `換算匯率 ${data.fx.date}` : "尚未同步匯率"}
@@ -184,9 +175,6 @@ export default function Overview({
     <>
       <div className="journey-hero">
         <div>
-          <div className="journal-title" aria-hidden="true">
-            Travel Journal
-          </div>
           <span className="eyebrow">
             <span className="status-dot" />
             {p.label}
@@ -221,14 +209,6 @@ export default function Overview({
               建立另一趟旅程
             </Button>
           </div>
-          <svg className="journal-wave" viewBox="0 0 180 20" aria-hidden="true">
-            <path
-              d="M2 10 Q24 0 46 10 T90 10 T134 10 T178 10"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            />
-          </svg>
         </div>
       </div>
       <div className="trip-facts">
@@ -267,11 +247,17 @@ export default function Overview({
         className={`overview-grid ${p.before ? "before-trip" : p.after ? "after-trip" : "during-trip"}`}
       >
         {(p.before || p.after) && (
-          <div className="overview-budget">{budget}</div>
+          <div className="overview-budget">
+            {budget}
+            <aside className="overview-notes">{notes}</aside>
+          </div>
         )}
         {!p.after && <div className="overview-itinerary">{itinerary}</div>}
         {!p.before && !p.after && (
-          <div className="overview-budget">{budget}</div>
+          <div className="overview-budget">
+            {budget}
+            <aside className="overview-notes">{notes}</aside>
+          </div>
         )}
         <div className="overview-expenses">{recent}</div>
         {p.after && (
@@ -287,7 +273,6 @@ export default function Overview({
             </p>
           </Section>
         )}
-        <aside className="overview-notes">{notes}</aside>
       </div>
       {!p.before && <TripDays data={data} />}
     </>

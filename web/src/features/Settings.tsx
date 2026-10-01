@@ -62,8 +62,7 @@ export default function SettingsPage({
     <>
       <div className="page-title">
         <div>
-          <span className="eyebrow">MAKE IT YOURS</span>
-          <h1>你的旅程，你的步調。</h1>
+          <h1>旅程設定</h1>
         </div>
       </div>
       <div className="settings-grid">

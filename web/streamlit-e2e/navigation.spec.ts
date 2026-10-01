@@ -105,6 +105,51 @@ test("Streamlit 空資料有建立引導，新增與編輯旅程不需要先有�
   );
 });
 
+test("Streamlit 簡約版面在手機與桌面維持一致字體及可見的編輯入口", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const main = page.getByTestId("stMain");
+  for (const width of [320, 360, 390, 430, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect(
+      main.getByRole("link", { name: "Edit current trip" }),
+    ).toBeInViewport();
+    expect(
+      await main.evaluate(
+        (element) => element.scrollWidth <= element.clientWidth,
+      ),
+    ).toBe(true);
+  }
+  const headerFont = await main
+    .locator(".tr-header h2")
+    .evaluate((e) => getComputedStyle(e).fontFamily);
+  const cardFont = await main
+    .locator(".tr-day-card header strong")
+    .first()
+    .evaluate((e) => getComputedStyle(e).fontFamily);
+  expect(headerFont).toBe(cardFont);
+  await page.screenshot({
+    path: "../artifacts/minimal-streamlit-desktop.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({
+    path: "../artifacts/minimal-streamlit-home.png",
+    fullPage: true,
+  });
+  await main.getByRole("link", { name: "Edit current trip" }).click();
+  const input = page.getByLabel("Trip name", { exact: true });
+  await expect(input).toBeVisible();
+  expect(await input.evaluate((e) => getComputedStyle(e).fontFamily)).toBe(
+    headerFont,
+  );
+  await page.screenshot({
+    path: "../artifacts/minimal-streamlit-edit.png",
+    fullPage: true,
+  });
+});
+
 test("Streamlit 頂端 option menu 可切換、返回與重新整理", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
