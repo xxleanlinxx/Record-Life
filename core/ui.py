@@ -98,8 +98,8 @@ def context():
     con = db.connect()
     tid = st.session_state.get("trip_id")
     if not tid:
-        st.info("Create a trip on Home to get started.")
-        st.page_link("screens/home.py",label="Go to Home")
+        st.info("No trips yet. Create your first trip to start planning and recording expenses.")
+        st.page_link("screens/new_trip.py",label="Create your first trip")
         st.stop()
     t = services.trip(con,tid)
     return con,tid,t.home_currency,t

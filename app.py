@@ -6,6 +6,8 @@ ui.inject_css()
 con = db.connect()
 pages = [st.Page(f"screens/{name.lower()}.py",title=name,default=name=="Home")
     for name in ["Home","Plan","Record","Bookings","Budget"]]
+pages += [st.Page("screens/edit_trip.py", title="Edit trip", url_path="edit-trip"),
+          st.Page("screens/new_trip.py", title="New trip", url_path="new-trip")]
 navigation = st.navigation(pages,position="hidden")
 trips = db.q(con,"select trip_id,name from dim_trip order by start_date desc,trip_id")
 if "pending_trip" in st.session_state:
@@ -13,6 +15,9 @@ if "pending_trip" in st.session_state:
     st.session_state.pop("trip_selector",None)
 if not trips.empty and st.session_state.get("trip_id") not in trips.trip_id.tolist():
     st.session_state.trip_id = trips.trip_id.iloc[0]
+elif trips.empty:
+    st.session_state.pop("trip_id", None)
+    st.session_state.pop("trip_selector", None)
 
 if st.session_state.get("_fx_checked_day") != fx.d_minus_1():
     st.session_state.fx_status = fx.ensure_rates(con)
@@ -20,6 +25,9 @@ if st.session_state.get("_fx_checked_day") != fx.d_minus_1():
 
 with st.sidebar:
     st.subheader("Settings")
+    if not trips.empty:
+        st.page_link("screens/edit_trip.py", label="Edit current trip", icon=":material/edit:")
+    st.page_link("screens/new_trip.py", label="Create new trip" if not trips.empty else "Create your first trip", icon=":material/add:")
     if not trips.empty:
         labels = dict(zip(trips.trip_id,trips.name))
         if "trip_selector" not in st.session_state:
@@ -47,8 +55,8 @@ with st.sidebar:
     if st.session_state.fx_status.error:
         st.warning(st.session_state.fx_status.error)
     st.caption("D-1 cutoff: Asia/Taipei · provider dates shown as supplied.")
-    st.page_link("screens/home.py",label="Manage / create trips")
 
-ui.option_menu(navigation.title)
+if navigation.title in {"Home", "Plan", "Record", "Bookings", "Budget"}:
+    ui.option_menu(navigation.title)
 ui.flash()
 navigation.run()

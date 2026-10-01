@@ -169,12 +169,8 @@ export default function App() {
               <div className="card onboarding">
                 <span className="eyebrow">YOUR NEXT CHAPTER</span>
                 <Compass size={56} strokeWidth={1} />
-                <h1>把旅行，記成自己的故事。</h1>
-                <p>
-                  安排每天的期待，收好預訂，
-                  <br />
-                  也讓每一筆旅費心裡有數。
-                </p>
+                <h1>建立你的第一趟旅程</h1>
+                <p>目前還沒有旅程。建立後就能安排行程、管理預訂與記帳。</p>
                 <Button
                   onClick={() => setEditor({ kind: "trip", create: true })}
                 >

@@ -1,7 +1,7 @@
-"""Small forms shared by the five screens."""
+"""Validated forms shared by the Streamlit screens."""
 import datetime as dt
 import streamlit as st
-from core import fx, ui, services
+from core import db, fx, ui, services
 
 def create_trip(con):
     with st.form("new_trip"):
@@ -17,7 +17,37 @@ def create_trip(con):
             try:
                 tid = services.create_trip(con,name,start,end,home,local,budget,members.splitlines())
                 st.session_state.pending_trip = tid
-                ui.saved("Trip created. Add plans, bookings and expenses below.")
+                st.session_state.flash = "Trip created. Add plans, bookings and expenses from the menu."
+                st.switch_page("screens/home.py")
+            except ValueError as exc:
+                st.error(str(exc))
+
+def edit_trip(con, tid, home, trip):
+    budgets = db.q(con,"select category,planned_home from dim_trip_budget where trip_id=?",[tid]).set_index("category").planned_home.to_dict()
+    with st.form(f"edit_trip_{tid}_{home}"):
+        name = st.text_input("Trip name", value=trip["name"])
+        start = st.date_input("Departure", value=trip.start_date)
+        end = st.date_input("Return", value=trip.end_date)
+        local = st.selectbox("Destination currency", fx.SPEND_CURRENCIES, index=fx.SPEND_CURRENCIES.index(trip.local_currency))
+        budget = st.number_input(f"Total budget ({home})", min_value=0.0, value=round(float(trip.budget_home), 2))
+        with st.expander("Category budgets (optional)"):
+            planned = {c:st.number_input(f"{c} budget ({home})", min_value=0.0, value=round(float(budgets.get(c,0)),2)) for c in services.CATEGORIES}
+        if st.form_submit_button("Save trip", type="primary"):
+            try:
+                services.update_trip(con, tid, name, start, end, local, budget, planned)
+                st.session_state.flash = "Trip updated."
+                st.switch_page("screens/home.py")
+            except ValueError as exc:
+                st.error(str(exc))
+    st.subheader("Travel party")
+    names = db.q(con,"select display_name from dim_member where trip_id=? order by display_name",[tid]).display_name.tolist()
+    st.caption("Members: " + ", ".join(names))
+    with st.form(f"member_{tid}"):
+        name = st.text_input("New member name")
+        if st.form_submit_button("Add member"):
+            try:
+                services.add_member(con, tid, name)
+                ui.saved("Member added. Existing splits are unchanged.")
             except ValueError as exc:
                 st.error(str(exc))
 

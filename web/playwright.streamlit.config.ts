@@ -11,10 +11,18 @@ export default defineConfig({
     ...devices["Desktop Chrome"],
     screenshot: "only-on-failure",
   },
-  webServer: {
-    command: "../.venv/bin/python ../scripts/e2e_streamlit.py",
-    url: "http://127.0.0.1:8503/_stcore/health",
-    reuseExistingServer: false,
-    timeout: 30000,
-  },
+  webServer: [
+    {
+      command: "../.venv/bin/python ../scripts/e2e_streamlit.py",
+      url: "http://127.0.0.1:8503/_stcore/health",
+      reuseExistingServer: false,
+      timeout: 30000,
+    },
+    {
+      command: "../.venv/bin/python ../scripts/e2e_streamlit.py --empty",
+      url: "http://127.0.0.1:8504/_stcore/health",
+      reuseExistingServer: false,
+      timeout: 30000,
+    },
+  ],
 });

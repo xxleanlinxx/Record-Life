@@ -161,8 +161,10 @@ def test_five_pages_render(con,monkeypatch,page):
         t.switch_page(f"screens/{page}.py").run()
     assert not t.exception
     assert len(t.markdown)>1
-    expected = {"home":"Manage this trip","plan":"Add activity","record":"What","bookings":"Add booking","budget":"Budget view"}
-    if page in ("home","plan","bookings"):
+    expected = {"plan":"Add activity","record":"What","bookings":"Add booking","budget":"Budget view"}
+    if page=="home":
+        assert any(x.label=="Edit current trip" for x in t.get("page_link"))
+    elif page in ("plan","bookings"):
         assert any(x.label==expected[page] for x in t.expander)
     elif page=="record":
         assert find(t.text_input,expected[page])
@@ -208,6 +210,48 @@ def test_empty_database_ui(monkeypatch):
     assert not t.exception
     assert services.trip(con,t.session_state.trip_id)["name"]=="New journey"
     con.close()
+
+def test_edit_trip_page_and_cancel_preserve_data(con,monkeypatch):
+    t = app(con,monkeypatch).switch_page("screens/edit_trip.py").run()
+    assert not t.exception
+    assert find(t.text_input,"Trip name").value=="Kyoto & Osaka"
+    find(t.text_input,"Trip name").input("Unsaved edit")
+    t.switch_page("screens/home.py").run()
+    assert services.trip(con,"t1")["name"]=="Kyoto & Osaka"
+    t.switch_page("screens/edit_trip.py").run()
+    find(t.text_input,"Trip name").input("Kyoto updated")
+    find(t.button,"Save trip").click().run()
+    assert not t.exception
+    assert services.trip(con,"t1")["name"]=="Kyoto updated"
+    assert any("Trip updated." in message.value for message in t.success)
+
+@pytest.mark.parametrize("page",["edit_trip","new_trip"])
+def test_empty_trip_management_offers_creation(monkeypatch,page):
+    with duckdb.connect(":memory:") as con:
+        db.ensure_schema(con)
+        t = app(con,monkeypatch)
+        t.session_state.trip_id = "missing-trip"
+        t.switch_page(f"screens/{page}.py").run()
+        assert not t.exception
+        assert find(t.button,"Create trip")
+        assert not any(x.label=="Edit current trip" for x in t.get("page_link"))
+        assert any("No trips yet" in x.value for x in t.markdown)
+        find(t.text_input,"Trip name").input("First trip")
+        find(t.button,"Create trip").click().run()
+        assert not t.exception
+        assert services.trip(con,t.session_state.trip_id)["name"]=="First trip"
+
+def test_create_another_trip_keeps_existing_trip(con,monkeypatch):
+    before = con.execute("select count(*) from dwd_expense").fetchone()[0]
+    t = app(con,monkeypatch).switch_page("screens/new_trip.py").run()
+    assert not t.exception
+    find(t.text_input,"Trip name").input("Second trip")
+    find(t.button,"Create trip").click().run()
+    assert not t.exception
+    assert t.session_state.trip_id!="t1"
+    assert services.trip(con,t.session_state.trip_id)["name"]=="Second trip"
+    assert services.trip(con,"t1")["name"]=="Kyoto & Osaka"
+    assert con.execute("select count(*) from dwd_expense").fetchone()[0]==before
 
 def test_legacy_fk_migration_preserves_details():
     c = duckdb.connect(":memory:")

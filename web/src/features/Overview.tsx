@@ -210,6 +210,17 @@ export default function Overview({
                 : `${data.members.length} 位旅伴，一起出發`}
             </span>
           </div>
+          <div className="journey-actions">
+            <Button variant="secondary" onClick={() => edit({ kind: "trip" })}>
+              編輯旅程
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => edit({ kind: "trip", create: true })}
+            >
+              建立另一趟旅程
+            </Button>
+          </div>
           <svg className="journal-wave" viewBox="0 0 180 20" aria-hidden="true">
             <path
               d="M2 10 Q24 0 46 10 T90 10 T134 10 T178 10"

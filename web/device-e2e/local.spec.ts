@@ -807,6 +807,68 @@ test("大量資料基準（手動執行）", async ({ page, context }) => {
   );
 });
 
+test("旅程建立與編輯入口明確，沒有記帳資料也能操作", async ({
+  page,
+  context,
+}) => {
+  await rates(context);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/settings");
+  await expect(
+    page.getByText("目前還沒有旅程。建立後就能安排行程、管理預訂與記帳。"),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "旅程設定", exact: true }),
+  ).toHaveCount(0);
+  await page.screenshot({
+    path: "../artifacts/minimal-react-empty.png",
+    fullPage: true,
+  });
+  await create(page);
+  await page.getByRole("button", { name: "關閉通知", exact: true }).click();
+  await page.getByRole("button", { name: "編輯旅程", exact: true }).click();
+  await expect(page.getByLabel("旅程名稱", { exact: true })).toHaveValue(
+    "裝置上的京都旅行",
+  );
+  await page.getByLabel("旅程名稱", { exact: true }).fill("Updated empty trip");
+  await page.screenshot({
+    path: "../artifacts/minimal-react-edit.png",
+    fullPage: true,
+  });
+  await save(page);
+  await expect(
+    page.getByRole("heading", { name: "Updated empty trip", exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await expect(
+    page.getByRole("heading", { name: "Updated empty trip", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "旅程設定", exact: true }).click();
+  await page
+    .getByRole("button", { name: "編輯旅程與預算", exact: true })
+    .click();
+  await expect(page.getByLabel("旅程名稱", { exact: true })).toHaveValue(
+    "Updated empty trip",
+  );
+  await page.getByRole("button", { name: "關閉視窗", exact: true }).click();
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "編輯旅程與預算", exact: true }),
+  ).toBeFocused();
+  await page.getByRole("link", { name: "Home", exact: true }).click();
+  await page
+    .getByRole("button", { name: "建立另一趟旅程", exact: true })
+    .click();
+  await expect(page.getByLabel("旅程名稱", { exact: true })).toBeEmpty();
+  await page.getByRole("button", { name: "關閉視窗", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "建立另一趟旅程", exact: true }),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("heading", { name: "Updated empty trip", exact: true }),
+  ).toBeVisible();
+});
+
 test("旅遊指引卡片、時間軸及長預訂內容在手機可閱讀", async ({
   page,
   context,

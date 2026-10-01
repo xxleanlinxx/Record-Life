@@ -86,9 +86,15 @@ export default function AppShell({
           >
             <Plus size={20} />
           </button>
-          <NavLink to="/settings" className="icon-button" aria-label="旅程設定">
-            <Settings size={20} />
-          </NavLink>
+          {selected && (
+            <NavLink
+              to="/settings"
+              className="icon-button"
+              aria-label="旅程設定"
+            >
+              <Settings size={20} />
+            </NavLink>
+          )}
         </div>
       </header>
 

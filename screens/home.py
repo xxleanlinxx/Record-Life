@@ -1,9 +1,9 @@
 import streamlit as st
-from core import db,fx,ui,maps,services,forms
+from core import db,fx,ui,maps,forms
 
 con = db.connect()
 if not st.session_state.get("trip_id"):
-    ui.header("Travel recorder","Your next trip starts here","Plan your days. Keep your budget in view.")
+    ui.header("Trips","Create your first trip","No trips yet. Start with a name and travel dates.")
     forms.create_trip(con)
     if st.button("Load Kyoto & Osaka demo"):
         db.ensure_schema(con,seed=True)
@@ -15,6 +15,9 @@ else:
     remaining = trip.budget_home-spent
     day,left,phase = ui.progress(trip)
     ui.header(trip.dates_label,trip["name"],phase)
+    with st.container(key="trip_actions"):
+        st.page_link("screens/edit_trip.py", label="Edit current trip", icon=":material/edit:")
+        st.page_link("screens/new_trip.py", label="Create new trip", icon=":material/add:")
     all_items = db.q(con, "select i.*, p.name place from dwd_itinerary_item i left join dim_place p using(place_id) where i.trip_id=? order by day_no,start_time,item_id", [tid])
     member_count = db.q(con, "select count(*) n from dim_member where trip_id=?", [tid]).iloc[0, 0]
     st.markdown(f'<div class="tr-facts"><div><small>Duration</small><strong>{trip.n_days} days</strong></div>'
@@ -46,30 +49,3 @@ else:
         st.markdown(ui.row("",ui.escape(r.title),ui.escape(f"{r.display_name} · {r.category}"),fx.fmt(r.amount_home,H)),unsafe_allow_html=True)
     if day != 0:
         ui.trip_days(trip, all_items)
-    with st.expander("Manage this trip"):
-        budgets = db.q(con,"select category,planned_home from dim_trip_budget where trip_id=?",[tid]).set_index("category").planned_home.to_dict()
-        with st.form(f"edit_trip_{tid}_{H}"):
-            name = st.text_input("Trip name",value=trip["name"])
-            start = st.date_input("Departure",value=trip.start_date)
-            end = st.date_input("Return",value=trip.end_date)
-            local = st.selectbox("Destination currency",fx.SPEND_CURRENCIES,index=fx.SPEND_CURRENCIES.index(trip.local_currency))
-            budget = st.number_input(f"Total budget ({H})",min_value=0.0,value=round(float(trip.budget_home),2))
-            planned = {c:st.number_input(f"{c} budget ({H})",min_value=0.0,value=round(float(budgets.get(c,0)),2)) for c in services.CATEGORIES}
-            if st.form_submit_button("Save trip"):
-                try:
-                    services.update_trip(con,tid,name,start,end,local,budget,planned)
-                    ui.saved("Trip updated.")
-                except ValueError as exc:
-                    st.error(str(exc))
-        names = db.q(con,"select display_name from dim_member where trip_id=? order by display_name",[tid]).display_name.tolist()
-        st.caption("Members: " + ", ".join(names))
-        with st.form(f"member_{tid}"):
-            name = st.text_input("New member name")
-            if st.form_submit_button("Add member"):
-                try:
-                    services.add_member(con,tid,name)
-                    ui.saved("Member added. Existing splits are unchanged.")
-                except ValueError as exc:
-                    st.error(str(exc))
-    with st.expander("Create another trip"):
-        forms.create_trip(con)

@@ -317,3 +317,10 @@ main {
   margin: 16px auto 0;
   color: var(--accent);
 }
+
+.journey-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
