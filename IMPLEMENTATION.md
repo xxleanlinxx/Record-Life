@@ -1,6 +1,6 @@
 # 審查建議實作與驗證
 
-更新：2026-09-19（Asia/Taipei）。對應 [CODE_REVIEW.md](CODE_REVIEW.md)。以下為工作目錄的實作，尚未推送或部署到公開網站。
+初版紀錄：2026-09-19（Asia/Taipei）。對應 [CODE_REVIEW.md](CODE_REVIEW.md)，這批實作已於後續推送。2026-09-22 的旅程管理入口修正與簡約介面調整另見 [UX_REVIEW.md](UX_REVIEW.md)；以下保留初版實作與測試數據。
 
 ## 介面
 
