@@ -15,7 +15,9 @@ self.addEventListener('fetch',event=>{
  const url=new URL(event.request.url);
  if(event.request.method!=='GET'||url.origin!==self.location.origin||url.pathname.startsWith('/api'))return;
  if(event.request.mode==='navigate'){event.respondWith((async()=>{try{const response=await fetch(event.request,{signal:AbortSignal.timeout(4000)});if(response.ok)return response}catch{}return (await caches.open(CACHE)).match('/index.html')})());return}
- if(FILES.includes(url.pathname)||url.pathname.startsWith('/assets/'))event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
+ // Precache requests omit Origin, while browser module requests include it.
+ // These same-origin static files have identical content regardless of Vary headers.
+ if(FILES.includes(url.pathname)||url.pathname.startsWith('/assets/'))event.respondWith(caches.match(event.request,{ignoreVary:true}).then(cached=>cached||fetch(event.request)));
 });
 `;
 await writeFile(new URL("../dist/sw.js", import.meta.url), code);
